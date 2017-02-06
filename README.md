@@ -6,8 +6,6 @@
 
 ---
 
-* Version:0.2.0  
-
 * Update:2017/2/6
   - Initial repository
   - Add guestbook
