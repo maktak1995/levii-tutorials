@@ -8,5 +8,5 @@
 
 * Update:2017/2/6
   - Initial repository
-  - Add guestbook
   - Add request
+  - Add ndb
