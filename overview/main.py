@@ -58,6 +58,12 @@ class BookPage(webapp2.RequestHandler):
     def get(self, guestbook_id):
         self.response.out.write('<html><body>')
         book = Book.get_by_id(long(guestbook_id))
+
+        if book is None:
+            self.response.out.write('<h1>Not Found</h1>')
+            self.response.out.write('</body></html>')
+            return
+
         ancestor_key = book.key
         greetings = Greeting.query_greeting(ancestor_key).fetch(20)
 
