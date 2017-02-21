@@ -127,6 +127,13 @@ class SubmitForm(webapp2.RequestHandler):
         # greetings are in the same entity group.
         guestbook_id = self.request.get('guestbook_id')  # Get guestbook name from user's post data
         book = Book.get_by_id(long(guestbook_id))
+
+        if book is None:
+            self.response.out.write('<html><body>')
+            self.response.out.write('<h1>Not Found</h1>')
+            self.response.out.write('</body></html>')
+            return
+
         book.number += 1
         book.put()
         greeting = Greeting(parent=book.key,
