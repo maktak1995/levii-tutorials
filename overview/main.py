@@ -79,9 +79,15 @@ class MainPage(webapp2.RequestHandler):
     def get(self):
         self.response.out.write('<html><body>')
 
+        self.response.out.write('<ul>')
         for book in Book.query_book():
-            self.response.out.write('<blockquote>%s : %s</blockquote>' %
-                                    (cgi.escape(book.name), cgi.escape(str(book.number))))
+            book_item = '<li><a href="/books/{id}">{name} : {greeting_num}</a></li>'.format(
+                id=book.key.id(),
+                name=cgi.escape(book.name),
+                greeting_num=cgi.escape(str(book.number))
+            )
+            self.response.out.write(book_item)
+        self.response.out.write('</ul>')
 # [END query]
 
         self.response.out.write("""
@@ -89,10 +95,6 @@ class MainPage(webapp2.RequestHandler):
           <form action="/addbook?%s" method="post">
             <form>Guestbook name to add: <input value="" name="guestbook_name">
             <input type="submit" value="add book"></form>
-          </form>
-          <form action="/books" method="get">
-            <form>Guestbook name to get: <input value="" name="guestbook_name">
-            <input type="submit" value="get book"></form>
           </form>
         </body>
       </html>""")
@@ -129,17 +131,8 @@ class SubmitForm(webapp2.RequestHandler):
         self.redirect('/books/' + str(guestbook_id))
 
 
-class Jumper(webapp2.RequestHandler):
-    def get(self):
-        guestbook_name = self.request.get('guestbook_name')
-        book = Book.query(Book.name == guestbook_name).get()
-        guestbook_id = book.key.id()
-        self.redirect('/books/' + str(guestbook_id))
-
-
 app = webapp2.WSGIApplication([
     ('/', MainPage),
-    ('/books', Jumper),
     ('/books/(\d+)', BookPage),
     ('/sign', SubmitForm),
     ('/addbook', AddBook)
