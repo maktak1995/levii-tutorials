@@ -36,8 +36,8 @@ class Book(ndb.Model):
 
 # [START query]
     @classmethod
-    def query_book(cls, ancestor_key):
-        return cls.query(ancestor=ancestor_key).order(cls.name)
+    def query_book(cls):
+        return cls.query().order(cls.name)
 
 
 # [START greeting]
@@ -57,7 +57,7 @@ class Greeting(ndb.Model):  # Make the "Greeting" model
 class BookPage(webapp2.RequestHandler):
     def get(self, guestbook_id):
         self.response.out.write('<html><body>')
-        book = Book.get_by_id(long(guestbook_id), parent=ndb.Key("Books", "guestbook"))
+        book = Book.get_by_id(long(guestbook_id))
         ancestor_key = book.key
         greetings = Greeting.query_greeting(ancestor_key).fetch(20)
 
@@ -78,8 +78,7 @@ class BookPage(webapp2.RequestHandler):
 class MainPage(webapp2.RequestHandler):
     def get(self):
         self.response.out.write('<html><body>')
-        ancestor_key = ndb.Key("Books", "guestbook")
-        books = Book.query_book(ancestor_key).fetch(20)
+        books = Book.query_book().fetch(20)
 
         for book in books:
             self.response.out.write('<blockquote>%s : %s</blockquote>' %
@@ -103,9 +102,10 @@ class MainPage(webapp2.RequestHandler):
 class AddBook(webapp2.RequestHandler):
     def post(self):
         guestbook_name = self.request.get('guestbook_name')  # Get guestbook name from user's post data
-        book = Book(parent=ndb.Key("Books", "guestbook"),
-                    name=guestbook_name,
-                    number=0)
+        book = Book(
+            name=guestbook_name,
+            number=0
+        )
         book.put()
         # [END submit]
 
@@ -119,7 +119,7 @@ class SubmitForm(webapp2.RequestHandler):
         # We set the parent key on each 'Greeting' to ensure each guestbook's
         # greetings are in the same entity group.
         guestbook_id = self.request.get('guestbook_id')  # Get guestbook name from user's post data
-        book = Book.get_by_id(long(guestbook_id), parent=ndb.Key("Books", "guestbook"))
+        book = Book.get_by_id(long(guestbook_id))
         book.number += 1
         book.put()
         greeting = Greeting(parent=book.key,
