@@ -78,9 +78,8 @@ class BookPage(webapp2.RequestHandler):
 class MainPage(webapp2.RequestHandler):
     def get(self):
         self.response.out.write('<html><body>')
-        books = Book.query_book().fetch(20)
 
-        for book in books:
+        for book in Book.query_book():
             self.response.out.write('<blockquote>%s : %s</blockquote>' %
                                     (cgi.escape(book.name), cgi.escape(str(book.number))))
 # [END query]
