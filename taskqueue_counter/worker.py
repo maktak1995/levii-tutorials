@@ -16,7 +16,6 @@
 
 from google.appengine.ext import ndb
 import webapp2
-import time
 
 
 COUNTER_KEY = 'default counter'
@@ -48,7 +47,6 @@ class UpdateHogeHandler(webapp2.RequestHandler):
         # transaction write throughput.
         @ndb.transactional
         def update_hoge():
-            time.sleep(60.0)
             counter = Counter.get_or_insert(COUNTER_KEY, count=0)
             counter.count += 10
             counter.put()

@@ -54,18 +54,15 @@ class EnqueueTaskHandler(webapp2.RequestHandler):
         self.response.write(
             'Task {} enqueued, ETA {}.'.format(task.name, task.eta))
 
+
 # Enqueue hoge
 class HogeEnqueueTaskHandler(webapp2.RequestHandler):
     def post(self):
-        queue = taskqueue.Queue(name='hoge')
-        task = taskqueue.Task(
+        task = taskqueue.add(
+            queue_name='hoge',
             url='/update_hoge',
-            target='worker')
-
-        rpc = queue.add_async(task)
-
-        # Wait for the rpc to complete and return the queued task.
-        task = rpc.get_result()
+            target='worker',
+            countdown=60)
 
         self.response.write(
             'Task {} enqueued, ETA {}.'.format(task.name, task.eta))
