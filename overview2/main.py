@@ -52,6 +52,25 @@ class Book(ndb.Model):
     @classmethod
     def query_book(cls):
         return cls.query().order(cls.name)
+
+    @classmethod
+    def add(cls, contents, books):
+        book = books.get()
+        book.number += 1
+        book.put()
+        greeting = Greeting(parent=books, content=contents)
+        greeting.put()
+        return
+
+    @classmethod
+    def delete(cls, greetings, books):
+        book = books.get()
+        greeting = greetings.get()
+        book.number -= 1
+        book.put()
+        greeting.key.delete()
+        return
+
     # [END query]
 
 
@@ -210,7 +229,13 @@ class AddBook(webapp2.RequestHandler):
 # [START add tag]
 class AddTag(webapp2.RequestHandler):
     def post(self):
-        tag_type = self.request.get('tag_type')  # Get guestbook name from user's post data
+        tag_type = self.request.get('tag_type')
+        if tag_type == '':
+            self.response.out.write('<html><body>')
+            self.response.out.write('<h1>Tag name is None</h1>')
+            self.response.out.write('</body></html>')
+            return
+
         tag = Tag.query(Tag.type == tag_type).get()
         if tag is None:
             new_tag = Tag(type=tag_type)
@@ -232,19 +257,15 @@ class SubmitForm(webapp2.RequestHandler):
         # We set the parent key on each 'Greeting' to ensure each guestbook's
         # greetings are in the same entity group.
         guestbook_id = self.request.get('guestbook_id')  # Get guestbook name from user's post data
+        content = self.request.get('content')
         book = Book.get_by_id(long(guestbook_id))
-
         if book is None:
             self.response.out.write('<html><body>')
             self.response.out.write('<h1>Not Found</h1>')
             self.response.out.write('</body></html>')
             return
 
-        book.number += 1
-        book.put()
-        greeting = Greeting(parent=book.key,
-                            content=self.request.get('content'))
-        greeting.put()
+        Book.add(content, book.key)
 
         # [END submit]
         self.redirect('/books/' + str(guestbook_id))
@@ -258,13 +279,15 @@ class DeleteGreeting(webapp2.RequestHandler):
     def post(self):
         greeting_id = self.request.get('greeting_id')
         guestbook_id = self.request.get('guestbook_id')
-        greeting = Greeting.get_by_id(long(greeting_id), parent=ndb.Key('Book', long(guestbook_id)))
+        book = Book.get_by_id(long(guestbook_id))
+        greeting = Greeting.get_by_id(long(greeting_id), parent=book.key)
         if greeting is None:
             self.response.out.write('<html><body>')
             self.response.out.write('<h1>Not Found</h1>')
             self.response.out.write('</body></html>')
             return
-        greeting.key.delete()
+
+        Book.delete(greeting.key, book.key)
         # [END submit]
         self.redirect('/books/' + str(guestbook_id))
 # [END delete]
@@ -281,7 +304,7 @@ class UpdateBook(webapp2.RequestHandler):
         tag_id = self.request.get('tag_id')  # Get new guestbook tag from user's post data
         book = Book.get_by_id(long(guestbook_id))
         new_tag = Tag.get_by_id(long(tag_id))
-        if book is None:
+        if book is None or new_tag is None:
             self.response.out.write('<html><body>')
             self.response.out.write('<h1>Not Found</h1>')
             self.response.out.write('</body></html>')
