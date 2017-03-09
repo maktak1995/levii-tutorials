@@ -52,26 +52,26 @@ class Book(ndb.Model):
     @classmethod
     def query_book(cls):
         return cls.query().order(cls.name)
+    # [END query]
 
-    @classmethod
-    def add(cls, contents, books):
-        book = books.get()
-        book.number += 1
-        book.put()
-        greeting = Greeting(parent=books, content=contents)
+    @ndb.transactional
+    def add(self, contents):
+        greeting = Greeting(parent=self.key, content=contents)
         greeting.put()
-        return
+        self.number += 1
+        self.put()
+        return greeting
 
-    @classmethod
-    def delete(cls, greetings, books):
-        book = books.get()
-        greeting = greetings.get()
-        book.number -= 1
-        book.put()
+    @ndb.transactional
+    def delete(self, greeting):
+        self.number -= 1
+        self.put()
         greeting.key.delete()
         return
 
-    # [END query]
+    def get_greetings(self):
+        greetings = Greeting.query_greeting(self.key).fetch(20)
+        return greetings
 
 
 # [START greeting]
@@ -99,8 +99,7 @@ class BookPage(webapp2.RequestHandler):
             self.response.out.write('</body></html>')
             return
 
-        ancestor_key = book.key
-        greetings = Greeting.query_greeting(ancestor_key).fetch(20)
+        greetings = Book.get_greetings(book)
 
         for greeting in greetings:
             self.response.out.write("<blockquote>%s" % cgi.escape(greeting.content))
@@ -252,7 +251,6 @@ class AddTag(webapp2.RequestHandler):
 
 # [START submit]
 class SubmitForm(webapp2.RequestHandler):
-    @ndb.transactional
     def post(self):
         # We set the parent key on each 'Greeting' to ensure each guestbook's
         # greetings are in the same entity group.
@@ -265,7 +263,7 @@ class SubmitForm(webapp2.RequestHandler):
             self.response.out.write('</body></html>')
             return
 
-        Book.add(content, book.key)
+        Book.add(book, content)
 
         # [END submit]
         self.redirect('/books/' + str(guestbook_id))
@@ -287,7 +285,7 @@ class DeleteGreeting(webapp2.RequestHandler):
             self.response.out.write('</body></html>')
             return
 
-        Book.delete(greeting.key, book.key)
+        Book.delete(book, greeting)
         # [END submit]
         self.redirect('/books/' + str(guestbook_id))
 # [END delete]
