@@ -273,7 +273,6 @@ class SubmitForm(webapp2.RequestHandler):
 # [START delete]
 class DeleteGreeting(webapp2.RequestHandler):
 
-    @ndb.transactional
     def post(self):
         greeting_id = self.request.get('greeting_id')
         guestbook_id = self.request.get('guestbook_id')
