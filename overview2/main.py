@@ -99,7 +99,7 @@ class BookPage(webapp2.RequestHandler):
             self.response.out.write('</body></html>')
             return
 
-        greetings = Book.get_greetings(book)
+        greetings = book.get_greetings()
 
         for greeting in greetings:
             self.response.out.write("<blockquote>%s" % cgi.escape(greeting.content))
@@ -262,8 +262,7 @@ class SubmitForm(webapp2.RequestHandler):
             self.response.out.write('<h1>Not Found</h1>')
             self.response.out.write('</body></html>')
             return
-
-        Book.add(book, content)
+        book.add(content)
 
         # [END submit]
         self.redirect('/books/' + str(guestbook_id))
@@ -283,8 +282,7 @@ class DeleteGreeting(webapp2.RequestHandler):
             self.response.out.write('<h1>Not Found</h1>')
             self.response.out.write('</body></html>')
             return
-
-        Book.delete(book, greeting)
+        book.delete(greeting)
         # [END submit]
         self.redirect('/books/' + str(guestbook_id))
 # [END delete]
