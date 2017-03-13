@@ -35,6 +35,7 @@ JINJA_ENVIRONMENT = jinja2.Environment(
     extensions=['jinja2.ext.autoescape'],
     autoescape=True)
 
+
 # [START tag]
 class Tag(ndb.Model):
     type = ndb.StringProperty()  # type of tag
@@ -61,23 +62,26 @@ class Book(ndb.Model):
     # [END query]
 
     @ndb.transactional
+    @ndb.tasklet
     def add(self, contents):
         greeting = Greeting(parent=self.key, content=contents)
-        greeting.put()
+        yield greeting.put_async()
         self.number += 1
-        self.put()
-        return greeting
+        yield self.put_async()
+        raise ndb.Return(greeting)
 
     @ndb.transactional
+    @ndb.toplevel
     def delete(self, greeting):
         self.number -= 1
-        self.put()
-        greeting.key.delete()
+        self.put_async()
+        greeting.key.delete_async()
         return
 
+    @ndb.toplevel
     def get_greetings(self):
-        greetings = Greeting.query_greeting(self.key).fetch(20)
-        return greetings
+        greetings = Greeting.query_greeting(self.key).fetch_async(20)
+        return greetings.get_result()
 
 
 # [START greeting]
@@ -95,6 +99,7 @@ class Greeting(ndb.Model):  # Make the "Greeting" model
 
 
 class BookPage(webapp2.RequestHandler):
+    @ndb.toplevel
     def get(self, guestbook_id):
         book = Book.get_by_id(long(guestbook_id))
         if book is None:
@@ -104,19 +109,20 @@ class BookPage(webapp2.RequestHandler):
         template_values = {
             'book': book,
             'greetings': book.get_greetings(),
-            'tags': Tag.query_tag().fetch(20)
+            'tags': Tag.query_tag().fetch_async(20).get_result()
         }
         template = JINJA_ENVIRONMENT.get_template('book.html')
         self.response.write(template.render(template_values))
 
 
 class MainPage(webapp2.RequestHandler):
+    @ndb.toplevel
     def get(self):
         tag_type = self.request.get('tag')
         template_values = {
-            'search_tag': Tag.query(Tag.type == tag_type).get(),
+            'search_tag': Tag.query(Tag.type == tag_type).get_async().get_result(),
             'books': Book.query_book(),
-            'tags': Tag.query_tag().fetch(20)
+            'tags': Tag.query_tag().fetch_async(20).get_result()
         }
         template = JINJA_ENVIRONMENT.get_template('main.html')
         self.response.write(template.render(template_values))
@@ -125,6 +131,7 @@ class MainPage(webapp2.RequestHandler):
 # [START add book]
 class AddBook(webapp2.RequestHandler):
     @ndb.transactional(xg=True)
+    @ndb.toplevel
     def post(self):
         guestbook_name = self.request.get('guestbook_name')  # Get guestbook name from user's post data
         tag_id = self.request.get('tag_id')  # Get guestbook name from user's post data
@@ -137,7 +144,7 @@ class AddBook(webapp2.RequestHandler):
             new_tag = Tag.get_by_id(long(tag_id))
             if new_tag.key not in book.tag:
                 book.tag.append(new_tag.key)
-        book.put()
+        book.put_async()
         # [END submit]
         self.redirect('/')
 # [END add book]
@@ -145,6 +152,7 @@ class AddBook(webapp2.RequestHandler):
 
 # [START add tag]
 class AddTag(webapp2.RequestHandler):
+    @ndb.toplevel
     def post(self):
         tag_type = self.request.get('tag_type')
         if tag_type == '':
@@ -156,7 +164,7 @@ class AddTag(webapp2.RequestHandler):
         tag = Tag.query(Tag.type == tag_type).get()
         if tag is None:
             new_tag = Tag(type=tag_type)
-            new_tag.put()
+            new_tag.put_async()
         else:
             self.response.out.write('<html><body>')
             self.response.out.write('<h1>This tag is already exist</h1>')
@@ -209,6 +217,7 @@ class DeleteGreeting(webapp2.RequestHandler):
 # [START update]
 class UpdateBook(webapp2.RequestHandler):
     @ndb.transactional(xg=True)
+    @ndb.toplevel
     def post(self):
         # We set the parent key on each 'Greeting' to ensure each guestbook's
         # greetings are in the same entity group.
@@ -226,7 +235,7 @@ class UpdateBook(webapp2.RequestHandler):
             book.name = newbook_name
         if new_tag.key not in book.tag:
             book.tag.append(new_tag.key)
-        book.put()
+        book.put_async()
 
         # [END submit]
         self.redirect('/books/' + str(guestbook_id))
