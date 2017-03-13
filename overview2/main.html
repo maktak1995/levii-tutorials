@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+{% autoescape true %}
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <title>GuestBook mainpage</title>
+    </head>
+    <body>
+        <ul>
+            {% if search_tag is not none %}
+                {% for book in books %}
+                    {% if search_tag.key in book.tag %}
+                        <li><a href="/books/{{book.key.id()}}">{{book.name}} : {{book.number}}</a> :
+                            {% if book.tag is not none %}
+                                {% for btags in book.tag %}
+                                    {{btags.get().type}}
+                                {% endfor %}
+                            {% endif %}
+                        </li>
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                {% for book in books %}
+                    <li><a href="/books/{{book.key.id()}}">{{book.name}} : {{book.number}}</a> :
+                        {% if book.tag is not none %}
+                            {% for btags in book.tag %}
+                                {{btags.get().type}}
+                            {% endfor %}
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            {% endif %}
+        </ul>
+        <hr>
+          <form action="/addbook?%s" method="post">
+            <form>Guestbook name to add: <input value="" name="guestbook_name">
+            <select name="tag_id">
+
+            {% for tag in tags %}
+                <option value="{{tag.key.id()}}">{{tag.type}}</option>
+                {% endfor %}
+            </select>
+            <input type="submit" value="add book"></form>
+          </form>
+
+        <hr>
+            <form action="/?%s" method="get"><select name="tag">
+            {% for tag in tags %}
+                <option value="{{tag.type}}">{{tag.type}}</option>
+                {% endfor %}
+            </select>
+            <input type="submit" value="search by Tag">
+            </form>
+
+          <form action="/addtag?%s" method="post">
+            <form>Tagtype to add: <input value="" name="tag_type">
+                <input type="submit" value="add tag">
+            </form>
+          </form>
+    </body>
+</html>
+{% endautoescape %}
