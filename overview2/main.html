@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+{% autoescape true %}
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <title>GuestBook mainpage</title>
+    </head>
+    <body>
+        <ul>
+            {% for book in books %}
+                <li><a href="/books/{{book.key.id()}}">{{book.name}} : {{book.number}}</a> :
+                    {% if book.tag is not none %}
+                        {% for btags in book.tag %}
+                            {{btags.get().type}}
+                        {% endfor %}
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+        <hr>
+          <form action="/api/books/addbook?%s" method="post">
+            <form>Guestbook name to add: <input value="" name="guestbook_name">
+            <select name="tag_id">
+
+            {% for tag in tags %}
+                <option value="{{tag.key.id()}}">{{tag.type}}</option>
+                {% endfor %}
+            </select>
+            <input type="submit" value="add book"></form>
+          </form>
+
+        <hr>
+            <form action="/?%s" method="get"><select name="tag">
+            {% for tag in tags %}
+                <option value="{{tag.type}}">{{tag.type}}</option>
+                {% endfor %}
+            </select>
+            <input type="submit" value="search by Tag">
+            </form>
+
+          <form action="/api/tags/addtag?%s" method="post">
+            <form>Tagtype to add: <input value="" name="tag_type">
+                <input type="submit" value="add tag">
+            </form>
+          </form>
+    </body>
+</html>
+{% endautoescape %}

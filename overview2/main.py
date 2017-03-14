@@ -21,12 +21,19 @@ For more information, see README.md
 """
 
 # [START all]
+import os
 import cgi
 import urllib
 
 from google.appengine.ext import ndb
 
 import webapp2
+import jinja2
+
+JINJA_ENVIRONMENT = jinja2.Environment(
+    loader=jinja2.FileSystemLoader(os.path.dirname(__file__)),
+    extensions=['jinja2.ext.autoescape'],
+    autoescape=True)
 
 
 # [START tag]
@@ -90,118 +97,39 @@ class Greeting(ndb.Model):  # Make the "Greeting" model
 
 class BookPage(webapp2.RequestHandler):
     def get(self, guestbook_id):
-        self.response.out.write('<html><body>')
         book = Book.get_by_id(long(guestbook_id))
-        self.response.out.write('<blockquote><b>Bookname : %s</b></blockquote>' %
-                                cgi.escape(book.name))
         if book is None:
             self.response.out.write('<h1>Not Found</h1>')
             self.response.out.write('</body></html>')
             return
-
-        greetings = book.get_greetings()
-
-        for greeting in greetings:
-            self.response.out.write("<blockquote>%s" % cgi.escape(greeting.content))
-            self.response.out.write("""
-            <form action="/delete_greeting?greeting_id=%s&guestbook_id=%s" method="post">
-            <input type="submit" value="delete"></blockquote></form>""" % (greeting.key.id(), guestbook_id))
-
-        self.response.out.write("""
-          <hr>
-          <form action="/updatebook?%s" method="post">
-            <form>Guestbook name to update: <input value="" name="newbook_name">
-            <select name="tag_id">""" % urllib.urlencode({'guestbook_id': guestbook_id}))
-
-        tags = Tag.query_tag().fetch(20)
-        for tag in tags:
-            self.response.out.write("""
-                <option value=""" + str(tag.key.id()) + """>""" + tag.type + """</option>
-            """)
-
-        self.response.out.write("""
-            <input type="submit" value="update book"></form>
-          </form>""")
-
-        self.response.out.write("""
-          <hr>
-          <form action="/sign?%s" method="post">
-            <div><textarea name="content" rows="3" cols="60"></textarea></div>
-            <div><input type="submit" value="Sign Guestbook"></div>
-          </form>
-        </body>
-      </html>""" % urllib.urlencode({'guestbook_id': guestbook_id}))
+        template_values = {
+            'book': book,
+            'greetings': book.get_greetings(),
+            'tags': Tag.query_tag().fetch(20)
+        }
+        template = JINJA_ENVIRONMENT.get_template('book.html')
+        self.response.write(template.render(template_values))
 
 
 class MainPage(webapp2.RequestHandler):
     def get(self):
         tag_type = self.request.get('tag')
-        self.response.out.write('<html><body>')
-        self.response.out.write('<ul>')
         if tag_type != '':
-            search_tag = Tag.query(Tag.type == tag_type).get()
-            for book in Book.query_book():
-                if search_tag.key in book.tag:
-                    book_item = '<li><a href="/books/{id}">{name} : {greeting_num}</a> :'.format(
-                        id=book.key.id(),
-                        name=cgi.escape(book.name),
-                        greeting_num=cgi.escape(str(book.number))
-                    )
-                    if book.tag is not None:
-                        for tags in book.tag:
-                            book_item += ' {tag} '.format(tag=tags.get().type)
-                        book_item += '</li>'
-
-                    self.response.out.write(book_item)
-            self.response.out.write('</ul>')
-
+            tag = Tag.query(Tag.type == tag_type).get()
+            if tag is None:
+                self.response.out.write('<html><body>')
+                self.response.out.write('<h1>Tag is None</h1>')
+                self.response.out.write('</body></html>')
+                return
+            books = Book.query(Book.tag == tag.key)
         else:
-            for book in Book.query_book():
-                book_item = '<li><a href="/books/{id}">{name} : {greeting_num}</a> :'.format(
-                    id=book.key.id(),
-                    name=cgi.escape(book.name),
-                    greeting_num=cgi.escape(str(book.number))
-                )
-                if book.tag is not None:
-                    for tags in book.tag:
-                        book_item += ' {tag} '.format(tag=tags.get().type)
-                    book_item += '</li>'
-
-                self.response.out.write(book_item)
-            self.response.out.write('</ul>')
-        # [END query]
-
-        self.response.out.write("""
-          <hr>
-          <form action="/addbook?%s" method="post">
-            <form>Guestbook name to add: <input value="" name="guestbook_name">
-            <select name="tag_id">""")
-        tags = Tag.query_tag().fetch(20)
-        for tag in tags:
-            self.response.out.write("""
-                <option value=""" + str(tag.key.id()) + """>""" + tag.type + """</option>
-            """)
-        self.response.out.write("""
-            <input type="submit" value="add book"></form>
-          </form>""")
-
-        self.response.out.write("""<hr><form action="/?%s" method="get">
-            <select name="tag">""")
-        for tag in tags:
-            self.response.out.write("""
-                <option value=""" + str(tag.type) + """>""" + tag.type + """</option>
-            """)
-        self.response.out.write("""
-            <input type="submit" value="search by Tag"></form>
-          </form>""")
-
-        self.response.out.write("""
-          <form action="/addtag?%s" method="post">
-            <form>Tagtype to add: <input value="" name="tag_type">
-            <input type="submit" value="add tag"></form>
-          </form>
-        </body>
-        </html>""")
+            books = Book.query_book()
+        template_values = {
+            'books': books,
+            'tags': Tag.query_tag().fetch(20)
+        }
+        template = JINJA_ENVIRONMENT.get_template('main.html')
+        self.response.write(template.render(template_values))
 
 
 # [START add book]
@@ -210,11 +138,9 @@ class AddBook(webapp2.RequestHandler):
     def post(self):
         guestbook_name = self.request.get('guestbook_name')  # Get guestbook name from user's post data
         tag_id = self.request.get('tag_id')  # Get guestbook name from user's post data
-
         book = Book(
             name=guestbook_name,
             number=0)
-
         if tag_id != '':
             new_tag = Tag.get_by_id(long(tag_id))
             if new_tag.key not in book.tag:
@@ -251,11 +177,13 @@ class AddTag(webapp2.RequestHandler):
 
 # [START submit]
 class SubmitForm(webapp2.RequestHandler):
-    def post(self):
+    def post(self, guestbook_id):
         # We set the parent key on each 'Greeting' to ensure each guestbook's
         # greetings are in the same entity group.
-        guestbook_id = self.request.get('guestbook_id')  # Get guestbook name from user's post data
         content = self.request.get('content')
+        if content == '':
+            self.redirect('/books/' + str(guestbook_id))
+            return
         book = Book.get_by_id(long(guestbook_id))
         if book is None:
             self.response.out.write('<html><body>')
@@ -272,9 +200,7 @@ class SubmitForm(webapp2.RequestHandler):
 # [START delete]
 class DeleteGreeting(webapp2.RequestHandler):
 
-    def post(self):
-        greeting_id = self.request.get('greeting_id')
-        guestbook_id = self.request.get('guestbook_id')
+    def post(self, guestbook_id, greeting_id):
         book = Book.get_by_id(long(guestbook_id))
         greeting = Greeting.get_by_id(long(greeting_id), parent=book.key)
         if greeting is None:
@@ -291,10 +217,9 @@ class DeleteGreeting(webapp2.RequestHandler):
 # [START update]
 class UpdateBook(webapp2.RequestHandler):
     @ndb.transactional(xg=True)
-    def post(self):
+    def post(self, guestbook_id):
         # We set the parent key on each 'Greeting' to ensure each guestbook's
         # greetings are in the same entity group.
-        guestbook_id = self.request.get('guestbook_id')  # Get guestbook id from user's post data
         newbook_name = self.request.get('newbook_name')  # Get new guestbook name from user's post data
         tag_id = self.request.get('tag_id')  # Get new guestbook tag from user's post data
         book = Book.get_by_id(long(guestbook_id))
@@ -317,10 +242,10 @@ class UpdateBook(webapp2.RequestHandler):
 app = webapp2.WSGIApplication([
     ('/', MainPage),
     ('/books/(\d+)', BookPage),
-    ('/sign', SubmitForm),
-    ('/delete_greeting', DeleteGreeting),
-    ('/addbook', AddBook),
-    ('/addtag', AddTag),
-    ('/updatebook', UpdateBook)
+    ('/api/books/addbook', AddBook),
+    ('/api/books/(\d+)/updatebook', UpdateBook),
+    ('/api/books/(\d+)/greeting', SubmitForm),
+    ('/api/books/(\d+)/greetings/(\d+)/delete', DeleteGreeting),
+    ('/api/tags/addtag', AddTag)
 ])
 # [END all]
