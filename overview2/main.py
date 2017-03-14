@@ -35,6 +35,7 @@ JINJA_ENVIRONMENT = jinja2.Environment(
     extensions=['jinja2.ext.autoescape'],
     autoescape=True)
 
+
 # [START tag]
 class Tag(ndb.Model):
     type = ndb.StringProperty()  # type of tag
@@ -115,6 +116,11 @@ class MainPage(webapp2.RequestHandler):
         tag_type = self.request.get('tag')
         if tag_type != '':
             tag = Tag.query(Tag.type == tag_type).get()
+            if tag is None:
+                self.response.out.write('<html><body>')
+                self.response.out.write('<h1>Tag is None</h1>')
+                self.response.out.write('</body></html>')
+                return
             books = Book.query(Book.tag == tag.key)
         else:
             books = Book.query_book()
@@ -175,6 +181,9 @@ class SubmitForm(webapp2.RequestHandler):
         # We set the parent key on each 'Greeting' to ensure each guestbook's
         # greetings are in the same entity group.
         content = self.request.get('content')
+        if content == '':
+            self.redirect('/books/' + str(guestbook_id))
+            return
         book = Book.get_by_id(long(guestbook_id))
         if book is None:
             self.response.out.write('<html><body>')
@@ -234,8 +243,8 @@ app = webapp2.WSGIApplication([
     ('/', MainPage),
     ('/books/(\d+)', BookPage),
     ('/api/books/addbook', AddBook),
-    ('/api/books/(\d+)/sign', SubmitForm),
     ('/api/books/(\d+)/updatebook', UpdateBook),
+    ('/api/books/(\d+)/greeting', SubmitForm),
     ('/api/books/(\d+)/greetings/(\d+)/delete', DeleteGreeting),
     ('/api/tags/addtag', AddTag)
 ])
