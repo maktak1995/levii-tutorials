@@ -9,12 +9,12 @@
         <blockquote><b>Bookname : {{book.name}}</b></blockquote>
         {% for greeting in greetings %}
             <blockquote>{{greeting.content}}
-                <form action="/delete_greeting?greeting_id={{greeting.key.id()}}&guestbook_id={{book.key.id()}}" method="post">
+                <form action="/api/books/{{book.key.id()}}/greetings/{{greeting.key.id()}}/delete" method="post">
                 <input type="submit" value="delete"></form>
             </blockquote>
         {% endfor %}
         <hr>
-        <form action="/updatebook?guestbook_id={{book.key.id()}}" method="post">
+        <form action="/api/books/{{book.key.id()}}/updatebook" method="post">
             <form>Guestbook name to update:
                 <input value="" name="newbook_name">
                 <select name="tag_id">
@@ -25,7 +25,7 @@
             </form>
         </form>
         <hr>
-        <form action="/sign?guestbook_id={{book.key.id()}}" method="post">
+        <form action="/api/books/{{book.key.id()}}/sign" method="post">
             <div><textarea name="content" rows="3" cols="60"></textarea></div>
             <div><input type="submit" value="Sign Guestbook"></div>
         </form>

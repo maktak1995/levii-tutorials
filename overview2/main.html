@@ -7,32 +7,18 @@
     </head>
     <body>
         <ul>
-            {% if search_tag is not none %}
-                {% for book in books %}
-                    {% if search_tag.key in book.tag %}
-                        <li><a href="/books/{{book.key.id()}}">{{book.name}} : {{book.number}}</a> :
-                            {% if book.tag is not none %}
-                                {% for btags in book.tag %}
-                                    {{btags.get().type}}
-                                {% endfor %}
-                            {% endif %}
-                        </li>
+            {% for book in books %}
+                <li><a href="/books/{{book.key.id()}}">{{book.name}} : {{book.number}}</a> :
+                    {% if book.tag is not none %}
+                        {% for btags in book.tag %}
+                            {{btags.get().type}}
+                        {% endfor %}
                     {% endif %}
-                {% endfor %}
-            {% else %}
-                {% for book in books %}
-                    <li><a href="/books/{{book.key.id()}}">{{book.name}} : {{book.number}}</a> :
-                        {% if book.tag is not none %}
-                            {% for btags in book.tag %}
-                                {{btags.get().type}}
-                            {% endfor %}
-                        {% endif %}
-                    </li>
-                {% endfor %}
-            {% endif %}
+                </li>
+            {% endfor %}
         </ul>
         <hr>
-          <form action="/addbook?%s" method="post">
+          <form action="/api/books/addbook?%s" method="post">
             <form>Guestbook name to add: <input value="" name="guestbook_name">
             <select name="tag_id">
 
@@ -52,7 +38,7 @@
             <input type="submit" value="search by Tag">
             </form>
 
-          <form action="/addtag?%s" method="post">
+          <form action="/api/tags/addtag?%s" method="post">
             <form>Tagtype to add: <input value="" name="tag_type">
                 <input type="submit" value="add tag">
             </form>

@@ -113,9 +113,13 @@ class BookPage(webapp2.RequestHandler):
 class MainPage(webapp2.RequestHandler):
     def get(self):
         tag_type = self.request.get('tag')
+        if tag_type != '':
+            tag = Tag.query(Tag.type == tag_type).get()
+            books = Book.query(Book.tag == tag.key)
+        else:
+            books = Book.query_book()
         template_values = {
-            'search_tag': Tag.query(Tag.type == tag_type).get(),
-            'books': Book.query_book(),
+            'books': books,
             'tags': Tag.query_tag().fetch(20)
         }
         template = JINJA_ENVIRONMENT.get_template('main.html')
@@ -128,11 +132,9 @@ class AddBook(webapp2.RequestHandler):
     def post(self):
         guestbook_name = self.request.get('guestbook_name')  # Get guestbook name from user's post data
         tag_id = self.request.get('tag_id')  # Get guestbook name from user's post data
-
         book = Book(
             name=guestbook_name,
             number=0)
-
         if tag_id != '':
             new_tag = Tag.get_by_id(long(tag_id))
             if new_tag.key not in book.tag:
@@ -169,10 +171,9 @@ class AddTag(webapp2.RequestHandler):
 
 # [START submit]
 class SubmitForm(webapp2.RequestHandler):
-    def post(self):
+    def post(self, guestbook_id):
         # We set the parent key on each 'Greeting' to ensure each guestbook's
         # greetings are in the same entity group.
-        guestbook_id = self.request.get('guestbook_id')  # Get guestbook name from user's post data
         content = self.request.get('content')
         book = Book.get_by_id(long(guestbook_id))
         if book is None:
@@ -190,9 +191,7 @@ class SubmitForm(webapp2.RequestHandler):
 # [START delete]
 class DeleteGreeting(webapp2.RequestHandler):
 
-    def post(self):
-        greeting_id = self.request.get('greeting_id')
-        guestbook_id = self.request.get('guestbook_id')
+    def post(self, guestbook_id, greeting_id):
         book = Book.get_by_id(long(guestbook_id))
         greeting = Greeting.get_by_id(long(greeting_id), parent=book.key)
         if greeting is None:
@@ -209,10 +208,9 @@ class DeleteGreeting(webapp2.RequestHandler):
 # [START update]
 class UpdateBook(webapp2.RequestHandler):
     @ndb.transactional(xg=True)
-    def post(self):
+    def post(self, guestbook_id):
         # We set the parent key on each 'Greeting' to ensure each guestbook's
         # greetings are in the same entity group.
-        guestbook_id = self.request.get('guestbook_id')  # Get guestbook id from user's post data
         newbook_name = self.request.get('newbook_name')  # Get new guestbook name from user's post data
         tag_id = self.request.get('tag_id')  # Get new guestbook tag from user's post data
         book = Book.get_by_id(long(guestbook_id))
@@ -235,10 +233,10 @@ class UpdateBook(webapp2.RequestHandler):
 app = webapp2.WSGIApplication([
     ('/', MainPage),
     ('/books/(\d+)', BookPage),
-    ('/sign', SubmitForm),
-    ('/delete_greeting', DeleteGreeting),
-    ('/addbook', AddBook),
-    ('/addtag', AddTag),
-    ('/updatebook', UpdateBook)
+    ('/api/books/addbook', AddBook),
+    ('/api/books/(\d+)/sign', SubmitForm),
+    ('/api/books/(\d+)/updatebook', UpdateBook),
+    ('/api/books/(\d+)/greetings/(\d+)/delete', DeleteGreeting),
+    ('/api/tags/addtag', AddTag)
 ])
 # [END all]
