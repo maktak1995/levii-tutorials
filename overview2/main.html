@@ -21,7 +21,6 @@
           <form action="/api/books/addbook?%s" method="post">
             <form>Guestbook name to add: <input value="" name="guestbook_name">
             <select name="tag_id">
-
             {% for tag in tags %}
                 <option value="{{tag.key.id()}}">{{tag.type}}</option>
                 {% endfor %}
