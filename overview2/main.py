@@ -61,22 +61,20 @@ class Book(ndb.Model):
         return cls.query().order(cls.name)
     # [END query]
 
-    @ndb.transactional
-    @ndb.toplevel
+    @ndb.transactional_tasklet
     def add(self, contents):
         greeting = Greeting(parent=self.key, content=contents)
-        greeting.put_async()
+        yield greeting.put_async()
         self.number += 1
-        self.put_async()
-        return greeting
+        yield self.put_async()
+        raise ndb.Return(greeting)
 
-    @ndb.transactional
-    @ndb.toplevel
+    @ndb.transactional_tasklet
     def delete(self, greeting):
         self.number -= 1
-        self.put_async()
-        greeting.key.delete_async()
-        return
+        yield self.put_async()
+        yield greeting.key.delete_async()
+        raise ndb.Return()
 
     @ndb.tasklet
     def get_greetings(self):
@@ -141,19 +139,19 @@ class MainPage(webapp2.RequestHandler):
 
 # [START add book]
 class AddBook(webapp2.RequestHandler):
-    @ndb.transactional(xg=True)
     @ndb.toplevel
     def post(self):
         guestbook_name = self.request.get('guestbook_name')  # Get guestbook name from user's post data
-        tag_id = self.request.get('tag_id')  # Get guestbook name from user's post data
+        tag_id = self.request.get('tag_id')
         book = Book(
             name=guestbook_name,
             number=0)
         if tag_id != '':
-            new_tag = Tag.get_by_id(long(tag_id))
+            fnew_tag = Tag.get_by_id_async(long(tag_id))
+            new_tag = fnew_tag.get_result()
             if new_tag.key not in book.tag:
                 book.tag.append(new_tag.key)
-        book.put_async()
+        ndb.transaction_async(book.put(), xg=True)
         # [END submit]
         self.redirect('/')
 # [END add book]
@@ -170,7 +168,8 @@ class AddTag(webapp2.RequestHandler):
             self.response.out.write('</body></html>')
             return
 
-        tag = Tag.query(Tag.type == tag_type).get()
+        ftag = Tag.query(Tag.type == tag_type).get_async()
+        tag = ftag.get_result()
         if tag is None:
             new_tag = Tag(type=tag_type)
             new_tag.put_async()
@@ -194,7 +193,8 @@ class SubmitForm(webapp2.RequestHandler):
         if content == '':
             self.redirect('/books/' + str(guestbook_id))
             return
-        book = Book.get_by_id(long(guestbook_id))
+        fbook = Book.get_by_id_async(long(guestbook_id))
+        book = fbook.get_result()
         if book is None:
             self.response.out.write('<html><body>')
             self.response.out.write('<h1>Not Found</h1>')
@@ -209,9 +209,12 @@ class SubmitForm(webapp2.RequestHandler):
 
 # [START delete]
 class DeleteGreeting(webapp2.RequestHandler):
+    @ndb.toplevel
     def post(self, guestbook_id, greeting_id):
-        book = Book.get_by_id(long(guestbook_id))
-        greeting = Greeting.get_by_id(long(greeting_id), parent=book.key)
+        fbook = Book.get_by_id_async(long(guestbook_id))
+        book = fbook.get_result()
+        fgreeting = Greeting.get_by_id_async(long(greeting_id), parent=book.key)
+        greeting = fgreeting.get_result()
         if greeting is None:
             self.response.out.write('<html><body>')
             self.response.out.write('<h1>Not Found</h1>')
@@ -225,15 +228,16 @@ class DeleteGreeting(webapp2.RequestHandler):
 
 # [START update]
 class UpdateBook(webapp2.RequestHandler):
-    @ndb.transactional(xg=True)
     @ndb.toplevel
     def post(self, guestbook_id):
         # We set the parent key on each 'Greeting' to ensure each guestbook's
         # greetings are in the same entity group.
         newbook_name = self.request.get('newbook_name')  # Get new guestbook name from user's post data
         tag_id = self.request.get('tag_id')  # Get new guestbook tag from user's post data
-        book = Book.get_by_id(long(guestbook_id))
-        new_tag = Tag.get_by_id(long(tag_id))
+        fbook = Book.get_by_id_async(long(guestbook_id))
+        fnew_tag = Tag.get_by_id_async(long(tag_id))
+        book = fbook.get_result()
+        new_tag = fnew_tag.get_result()
         if book is None or new_tag is None:
             self.response.out.write('<html><body>')
             self.response.out.write('<h1>Not Found</h1>')
@@ -243,7 +247,7 @@ class UpdateBook(webapp2.RequestHandler):
             book.name = newbook_name
         if new_tag.key not in book.tag:
             book.tag.append(new_tag.key)
-        book.put_async()
+        ndb.transaction_async(book.put(), xg=True)
 
         # [END submit]
         self.redirect('/books/' + str(guestbook_id))
