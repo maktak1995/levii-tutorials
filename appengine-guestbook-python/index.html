@@ -53,8 +53,8 @@
       {% for greeting in greetings %}
       <div class="row">
         {% if greeting.author %}
-          <b>{{ greeting.author.email }}
-            {% if user and user.user_id() == greeting.author.identity %}
+          <b>{{ greeting.author }}
+            {% if author.userID != 'GUEST' and author.userID == greeting.author %}
               (You)
             {% endif %}
           </b> wrote:
@@ -66,7 +66,7 @@
       {% endfor %}
       <!-- [END greetings] -->
 
-      <form action="/sign?guestbook_name={{ guestbook_name }}" method="post">
+      <form action="/api/greeting/sign/user/{{ author.key.id() }}?guestbook_name={{ guestbook_name }}" method="post">
         <div><textarea name="content" class="input-block-level" rows="3"></textarea></div>
         <div><input type="submit" class="btn btn-large btn-primary" value="Sign Guestbook"></div>
       </form>
