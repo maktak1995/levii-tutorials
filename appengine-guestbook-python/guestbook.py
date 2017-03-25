@@ -22,7 +22,6 @@ from google.appengine.api import memcache
 
 import jinja2
 import webapp2
-from webapp2_extras import sessions_memcache
 from webapp2_extras import sessions
 
 JINJA_ENVIRONMENT = jinja2.Environment(
@@ -33,7 +32,7 @@ JINJA_ENVIRONMENT = jinja2.Environment(
 config = {}
 config['webapp2_extras.sessions'] = {
     'secret_key': 'hogehoge',
-    'backend': 'memcache'
+    'cookie_name': 'session'
 }
 
 # [END imports]
@@ -81,8 +80,7 @@ class BaseHandler(webapp2.RequestHandler):
 
     @webapp2.cached_property
     def session(self):
-        return self.session_store.get_session(name='session',
-                                              factory=sessions_memcache.MemcacheSessionFactory)
+        return self.session_store.get_session(backend='memcache')
 
 
 # [END basehandler]
