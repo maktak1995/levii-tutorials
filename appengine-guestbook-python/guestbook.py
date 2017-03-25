@@ -17,11 +17,12 @@
 # [START imports]
 import os
 import urllib
-import binascii
 from google.appengine.ext import ndb
+from google.appengine.api import memcache
 
 import jinja2
 import webapp2
+from webapp2_extras import sessions_memcache
 from webapp2_extras import sessions
 
 JINJA_ENVIRONMENT = jinja2.Environment(
@@ -31,7 +32,8 @@ JINJA_ENVIRONMENT = jinja2.Environment(
 
 config = {}
 config['webapp2_extras.sessions'] = {
-    'secret_key': 'hogehoge'
+    'secret_key': 'hogehoge',
+    'backend': 'memcache'
 }
 
 # [END imports]
@@ -55,7 +57,6 @@ def guestbook_key(guestbook_name=DEFAULT_GUESTBOOK_NAME):
 # [START greeting]
 class Author(ndb.Model):
     """Sub model for representing an author."""
-    sessionID = ndb.StringProperty()
     userID = ndb.StringProperty()
     password = ndb.StringProperty()
 
@@ -80,7 +81,10 @@ class BaseHandler(webapp2.RequestHandler):
 
     @webapp2.cached_property
     def session(self):
-        return self.session_store.get_session()
+        return self.session_store.get_session(name='session',
+                                              factory=sessions_memcache.MemcacheSessionFactory)
+
+
 # [END basehandler]
 
 
@@ -88,47 +92,29 @@ class BaseHandler(webapp2.RequestHandler):
 class MainPage(BaseHandler):
     def get(self):
         guestbook_name = self.request.get('guestbook_name', DEFAULT_GUESTBOOK_NAME)
-        author_id = self.request.get('author_id')
-        sessionID = self.session.get('sessionID')
-        if sessionID == '':
-            new_sessionID = binascii.hexlify(os.urandom(8))
-            author = Author(sessionID=new_sessionID,
-                            userID='GUEST',
-                            password='')
-            ndb.transaction_async(author.put())
-            self.session['sessionID'] = new_sessionID
+        user_id = self.session.get('user_id')
 
         if not guestbook_name:
             guestbook_name = DEFAULT_GUESTBOOK_NAME
 
         greetings_query = Greeting.query(
             ancestor=guestbook_key(guestbook_name)).order(-Greeting.date)
-        greetings = greetings_query.fetch_async(10)
+        greetings = greetings_query.fetch(10)
 
-        if author_id != '':
-            author = Author.get_by_id(long(author_id))
-            if author is not None:
-                if author.sessionID == sessionID:
-                    url = '/api/user/logout/' + author_id
-                    url_linktext = 'Logout'
-                else:
-                    url = '/user/loginpage'
-                    url_linktext = 'Login'
+        author = Author.query(Author.userID == user_id).get()
 
+        if author is not None:
+            url = '/api/user/logout'
+            url_linktext = 'Logout'
+            author_id = author.key.id()
         else:
-            author = Author.query(Author.userID == 'GUEST').get()
-            if author is None:
-                author = Author(sessionID=binascii.hexlify(os.urandom(8)),
-                                userID='GUEST',
-                                password='')
-                ndb.transaction_async(author.put())
-
             url = '/user/loginpage'
             url_linktext = 'Login'
+            author_id = 'GUEST'
 
         template_values = {
-            'author': author,
-            'greetings': greetings.get_result(),
+            'author': author_id,
+            'greetings': greetings,
             'guestbook_name': urllib.quote_plus(guestbook_name),
             'url': url,
             'url_linktext': url_linktext,
@@ -158,18 +144,20 @@ class RegisterPage(webapp2.RequestHandler):
 # [START guestbook]
 class Guestbook(BaseHandler):
     @ndb.toplevel
-    def post(self, author_id):
+    def post(self):
         guestbook_name = self.request.get('guestbook_name', DEFAULT_GUESTBOOK_NAME)
+        author_id = self.request.get('author_id')
         greeting = Greeting(parent=guestbook_key(guestbook_name))
-        author = Author.get_by_id_async(long(author_id))
-        greeting.author = author.get_result().userID
-
+        if author_id != 'GUEST':
+            author = Author.get_by_id_async(long(author_id))
+            greeting.author = author.get_result().userID
+        else:
+            greeting.author = None
         greeting.content = self.request.get('content')
         ndb.transaction_async(greeting.put())
 
         guestbook = {'guestbook_name': guestbook_name}
-        authorid = {'author_id': author_id}
-        self.redirect('/?' + urllib.urlencode(guestbook) + '&' + urllib.urlencode(authorid))
+        self.redirect('/?' + urllib.urlencode(guestbook))
 # [END guestbook]
 
 # [START register]
@@ -177,16 +165,12 @@ class Register(BaseHandler):
     def post(self):
         user_id = self.request.get('user_id')
         password = self.request.get('password')
-        new_sessionID = binascii.hexlify(os.urandom(8))
         author = Author(
-                sessionID=new_sessionID,
                 userID=user_id,
                 password=password)
         ndb.transaction_async(author.put())
-        author_id = author.key.id()
-        self.session['sessionID'] = new_sessionID
-        query_params = {'author_id': author_id}
-        self.redirect('/?' + urllib.urlencode(query_params))
+        self.session['user_id'] = user_id
+        self.redirect('/')
 # [END register]
 
 # [START login]
@@ -194,7 +178,6 @@ class Login(BaseHandler):
     def post(self):
         user_id = self.request.get('user_id')
         password = self.request.get('password')
-        new_sessionID = binascii.hexlify(os.urandom(8))
         author = Author.query(Author.userID == user_id).get()
         if author is None:
             self.response.out.write('<html><body>')
@@ -206,21 +189,21 @@ class Login(BaseHandler):
             self.response.out.write('<h1>Password is wrong.</h1>')
             self.response.out.write('</body></html>')
             return
-        author.sessionID = new_sessionID
-        ndb.transaction_async(author.put())
-        author_id = author.key.id()
-        self.session['sessionID'] = new_sessionID
-        query_params = {'author_id': author_id}
-        self.redirect('/?' + urllib.urlencode(query_params))
+        self.session['user_id'] = user_id
+        self.redirect('/')
 # [END login]
 
 
 # [START logout]
-class Logout(webapp2.RequestHandler):
-    def get(self, author_id):
-        author = Author.get_by_id(long(author_id))
-        author.sessionID = None
-        author.put()
+class Logout(BaseHandler):
+    def get(self):
+        mem_id = self.session_store.get_secure_cookie('session')
+        if mem_id is None:
+            self.response.out.write('<html><body>')
+            self.response.out.write('<h1>Seesion is None.</h1>')
+            self.response.out.write('</body></html>')
+            return
+        memcache.delete(mem_id['_sid'])
         self.redirect('/')
 # [END logout]
 
@@ -229,9 +212,9 @@ app = webapp2.WSGIApplication([
     ('/', MainPage),
     ('/user/registerpage', RegisterPage),
     ('/user/loginpage', LoginPage),
-    ('/api/greeting/sign/user/(\d+)', Guestbook),
+    ('/api/greeting/sign', Guestbook),
     ('/api/user/register', Register),
     ('/api/user/login', Login),
-    ('/api/user/logout/(\d+)', Logout)
+    ('/api/user/logout', Logout)
     ], debug=True, config=config)
 # [END app]
