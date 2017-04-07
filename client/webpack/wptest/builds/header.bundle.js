@@ -1,9 +1,9 @@
 webpackJsonp([0],{
 
-/***/ 15:
+/***/ 17:
 /***/ (function(module, exports, __webpack_require__) {
 
-exports = module.exports = __webpack_require__(10)(undefined);
+exports = module.exports = __webpack_require__(1)(undefined);
 // imports
 
 
@@ -15,16 +15,23 @@ exports.push([module.i, ".header {\n  font-size: 3rem; }\n", ""]);
 
 /***/ }),
 
-/***/ 17:
+/***/ 19:
+/***/ (function(module, exports) {
+
+module.exports = "<header class=\"header\">{{text}}</header>\n";
+
+/***/ }),
+
+/***/ 21:
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(15);
+var content = __webpack_require__(17);
 if(typeof content === 'string') content = [[module.i, content, '']];
 // add the styles to the DOM
-var update = __webpack_require__(13)(content, {});
+var update = __webpack_require__(2)(content, {});
 if(content.locals) module.exports = content.locals;
 // Hot Module Replacement
 if(false) {
@@ -42,14 +49,7 @@ if(false) {
 
 /***/ }),
 
-/***/ 19:
-/***/ (function(module, exports) {
-
-module.exports = "<header class=\"header\">{{text}}</header>\n";
-
-/***/ }),
-
-/***/ 2:
+/***/ 4:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -61,11 +61,11 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _jquery = __webpack_require__(11);
+var _jquery = __webpack_require__(14);
 
 var _jquery2 = _interopRequireDefault(_jquery);
 
-var _mustache = __webpack_require__(12);
+var _mustache = __webpack_require__(15);
 
 var _mustache2 = _interopRequireDefault(_mustache);
 
@@ -73,7 +73,7 @@ var _Header = __webpack_require__(19);
 
 var _Header2 = _interopRequireDefault(_Header);
 
-__webpack_require__(17);
+__webpack_require__(21);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
