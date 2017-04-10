@@ -20,26 +20,28 @@ module.exports = {
        }),
     ],
     module: {
-        loaders: [
+        rules: [
             {
               test:   /\.js/,
-              loader: 'babel-loader',
-              include: __dirname + '/src'
+              use : ['babel-loader'],
+              include: __dirname + '/src',
             },
             {
               test:   /\.scss/,
-              loader: ExtractTextPlugin.extract({ fallback: 'style-loader', use: ['css-loader','sass-loader']})
+              use : ExtractTextPlugin.extract({ fallback: 'style-loader', use: ['css-loader','sass-loader']})
             },
             {
               test:   /\.html/,
-              loader: 'html-loader'
+              use : ['html-loader'],
             },
             {
               test:   /\.(png|gif|jpe?g|svg)$/i,
-              loader: 'url-loader',
-              query: {
-                limit: 10000,
-              },
+              use : ['url-loader'],
+            },
+            {
+              test: /\.js/,
+              use : ['eslint-loader'],
+              enforce: 'pre',
             },
         ],
     },

@@ -160,20 +160,20 @@
 __webpack_require__(0);
 
 // アンカー(a)があれば、Buttonコンポーネントをそこに描画します
-if (document.querySelectorAll('a').length) {
+if (document.querySelectorAll("a").length) {
     __webpack_require__.e/* require.ensure */(1).then((function () {
         //(訳注: 元記事には末尾の.defaultがありませんでした。これが無いと動作しない?)
         var Button = __webpack_require__(1).default;
-        var button = new Button('google.com');
-        button.render('a');
+        var button = new Button("google.com");
+        button.render("a");
     }).bind(null, __webpack_require__)).catch(__webpack_require__.oe);
 }
 // タイトル(h1)があれば、Headerコンポーネントをそこに描画します
-if (document.querySelectorAll('h1').length) {
+if (document.querySelectorAll("h1").length) {
     __webpack_require__.e/* require.ensure */(0).then((function () {
         //(訳注: 元記事には末尾の.defaultがありませんでした。これが無いと動作しない?)
         var Header = __webpack_require__(2).default;
-        new Header().render('h1');
+        new Header().render("h1");
     }).bind(null, __webpack_require__)).catch(__webpack_require__.oe);
 }
 

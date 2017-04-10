@@ -1,7 +1,7 @@
-import $ from 'jquery';
-import template from './Button.html';
-import Mustache from 'mustache';
-import './Button.scss';
+import $ from "jquery";
+import template from "./Button.html";
+import Mustache from "mustache";
+import "./Button.scss";
 export default class Button {
     constructor(link) {
         this.link = link;
@@ -17,6 +17,6 @@ export default class Button {
             Mustache.render(template, {text})
         );
         // リスナーを割り当て
-        $('.button').click(this.onClick.bind(this));
+        $(".button").click(this.onClick.bind(this));
     }
 }

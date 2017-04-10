@@ -85,7 +85,7 @@ var Header = function () {
     }
 
     _createClass(Header, [{
-        key: 'render',
+        key: "render",
         value: function render(node) {
             var text = (0, _jquery2.default)(node).text();
             (0, _jquery2.default)(node).html(_mustache2.default.render(_Header2.default, { text: text }));

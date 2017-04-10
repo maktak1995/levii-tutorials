@@ -38,19 +38,19 @@ var Button = function () {
     }
 
     _createClass(Button, [{
-        key: 'onClick',
+        key: "onClick",
         value: function onClick(event) {
             event.preventDefault();
             alert(this.link);
         }
     }, {
-        key: 'render',
+        key: "render",
         value: function render(node) {
             var text = (0, _jquery2.default)(node).text();
             // ボタンの描画
             (0, _jquery2.default)(node).html(_mustache2.default.render(_Button2.default, { text: text }));
             // リスナーを割り当て
-            (0, _jquery2.default)('.button').click(this.onClick.bind(this));
+            (0, _jquery2.default)(".button").click(this.onClick.bind(this));
         }
     }]);
 
