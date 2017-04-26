@@ -3,113 +3,113 @@
 var TodoMVC = TodoMVC || {};
 
 (function () {
-    'use strict';
+	'use strict';
 
-    var filterChannel = Backbone.Radio.channel('filter');
+	var filterChannel = Backbone.Radio.channel('filter');
 
-    TodoMVC.RootLayout = Mn.View.extend({
+	TodoMVC.RootLayout = Mn.View.extend({
 
-        el: '#todoapp',
+		el: '#todoapp',
 
-        regions:{
-            header: '#header',
-            main: '#main',
-            footer: '#footer'
-        }
-    });
+		regions: {
+			header: '#header',
+			main: '#main',
+			footer: '#footer'
+		}
+	});
 
-    //Layout Header View
-    TodoMVC.HeaderLayout = Mn.View.extend({
+	TodoMVC.HeaderLayout = Mn.View.extend({
 
-        template: '#template-header',
+		template: '#template-header',
 
-        ui: {
-            input: '#new-todo'
-        },
+		ui: {
+			input: '#new-todo'
+		},
 
-        events: {
-            'keypress @ui.input': 'onInputKeypress',
-            'keyup @ui.input': 'onInputKeyUp'
-        },
+		events: {
+			'keypress @ui.input': 'onInputKeypress',
+			'keyup @ui.input': 'onInputKeyup'
+		},
 
-        onInputKeyup: function (e) {
-            var ESC_KEY = 27;
+		onInputKeyup: function (e) {
+			var ESC_KEY = 27;
 
-            if (e.which === ESC_KEY) {
-                this.render();
-            }
-        },
+			if (e.which === ESC_KEY) {
+				this.render();
+			}
+		},
 
-        onInputKeypress: function (e) {
-            var ENTER_KEY = 13;
-            var todoText = this.ui.input.val().trim();
+		onInputKeypress: function (e) {
+			var ENTER_KEY = 13;
+			var todoText = this.ui.input.val().trim();
 
-            if (e.which === ENTER_KEY && todoText) {
-                this.collection.create({
-                    title: todoText
-                });
-                this.ui.input.val('');
-            }
-        }
-    });
+			if (e.which === ENTER_KEY && todoText) {
+				this.collection.create({
+					title: todoText
+				});
+				this.ui.input.val('');
+			}
+		}
+	});
 
-    //Layout Footer View
-    TodoMVC.FooterLayout = Mn.View.extend({
-        template: '#template-footer',
 
-        ui:{
-            filters: '#filters a',
-            completed: '.completed a',
-            active: '.active a',
-            all: '.all a',
-            summary: '#todo-count',
-            clear: '#clear-completed'
-        },
+	TodoMVC.FooterLayout = Mn.View.extend({
+		template: '#template-footer',
 
-        events: {
-            'click @ui.clear': 'onClearClick'
-        },
+		ui: {
+			filters: '#filters a',
+			completed: '.completed a',
+			active: '.active a',
+			all: '.all a',
+			summary: '#todo-count',
+			clear: '#clear-completed'
+		},
 
-        collectionEvents: {
-            all: 'render'
-        },
+		events: {
+			'click @ui.clear': 'onClearClick'
+		},
 
-        templateContext: {
-            activeCountLabel: function () {
-                return (this.activeCount === 1 ? 'item' : 'items') + 'left';
-            }
-        },
+		collectionEvents: {
+			all: 'render'
+		},
 
-        initiallize: function () {
-            this.listenTo(filterChannel.request('filterState'), 'change:filter', this.updateFilterSelection, this);
-        },
+		templateContext: {
+			activeCountLabel: function () {
+				return (this.activeCount === 1 ? 'item' : 'items') + ' left';
+			}
+		},
 
-        serializeData: function () {
-            var active = this.collection.getActive().length;
-            var total = this.collection.length;
+		initialize: function () {
+			this.listenTo(filterChannel.request('filterState'), 'change:filter', this.updateFilterSelection, this);
+		},
 
-            return {
-                activeCount: active,
-                totalCount: total,
-                completeCount: total - active
-            };
-        },
+		serializeData: function () {
+			var active = this.collection.getActive().length;
+			var total = this.collection.length;
 
-        onRender: function () {
-            this.$el.parent().toggle(this.collection.length > 0);
-            this.updateFilterSelection();
-        },
+			return {
+				activeCount: active,
+				totalCount: total,
+				completedCount: total - active
+			};
+		},
 
-        updateFilterSelection: function () {
-            this.ui.filters.removeClass('selected');
-            this.ui[filterChannel.request('filterState').get('filter')].addClass('selected');
-        },
+		onRender: function () {
+			this.$el.parent().toggle(this.collection.length > 0);
+			this.updateFilterSelection();
+		},
 
-        onClearClick: function () {
-            var completed = this.collection.getCompleted();
-            completed.forEach(function (todo) {
-                todo.destroy();
-            });
-        }
-    });
+		updateFilterSelection: function () {
+			this.ui.filters.removeClass('selected');
+			this.ui[filterChannel.request('filterState').get('filter')]
+			.addClass('selected');
+		},
+
+		onClearClick: function () {
+			var completed = this.collection.getCompleted();
+			completed.forEach(function (todo) {
+				todo.destroy();
+			});
+		}
+	});
 })();

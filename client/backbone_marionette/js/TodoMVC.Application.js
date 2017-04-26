@@ -1,19 +1,20 @@
-/* global Backbone, TodoMVC:true */
+/*global Backbone, TodoMVC:true */
 
 var TodoMVC = TodoMVC || {};
 
 (function () {
-    'use strict';
+	'use strict';
 
-    var TodoApp = Mn.Application.extend({
-        setRootLayout: function () {
-            this.root = new TodoMVC.RootLayout();
-        }
-    });
+	var TodoApp = Mn.Application.extend({
+		setRootLayout: function () {
+			this.root = new TodoMVC.RootLayout();
+		}
+	});
 
-    TodoMVC.App = new TodoApp();
+	TodoMVC.App = new TodoApp();
 
-    TodoMVC.App.on('before:start', function (){
-        TodoMVC.App.setRootLayout();
-    });
+	TodoMVC.App.on('before:start', function () {
+		TodoMVC.App.setRootLayout();
+	});
+
 })();

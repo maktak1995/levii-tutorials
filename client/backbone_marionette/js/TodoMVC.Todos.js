@@ -3,58 +3,59 @@
 var TodoMVC = TodoMVC || {};
 
 (function () {
-    'use strict';
+	'use strict';
 
-    //Todo Model
-    TodoMVC.Todo = Backbone.Model.extend({
+	TodoMVC.Todo = Backbone.Model.extend({
+		defaults: {
+			title: '',
+			completed: false,
+			created: 0
+		},
 
-        defaults: {
-            title: '',
-            completed: false,
-            created: 0
-        },
+		initialize: function () {
+			if (this.isNew()) {
+				this.set('created', Date.now());
+			}
+		},
 
-        initialize: function() {
-            if (this.isNew()) {
-                this.set('created', Date.now());
-            }
-        },
+		toggle: function () {
+			return this.set('completed', !this.isCompleted());
+		},
 
-        toggle: function () {
-            return this.set('completed', !this.isCompleted());
-        },
+		isCompleted: function () {
+			return this.get('completed');
+		},
 
-        isCompleted: function (filter) {
-            if (filter === 'all') {
-                return true;
-            }
+		matchesFilter: function (filter) {
+			if (filter === 'all') {
+				return true;
+			}
 
-            if (filter === 'active') {
-                return !this.isCompleted();
-            }
+			if (filter === 'active') {
+				return !this.isCompleted();
+			}
 
-            return this.isCompleted();
-        }
-    });
+			return this.isCompleted();
+		}
+	});
 
-    // Todo Collection
-    TodoMVC.TodoList = Backbone.Collection.extend({
+	TodoMVC.TodoList = Backbone.Collection.extend({
+		model: TodoMVC.Todo,
 
-        model: TodoMVC.Todo,
-        localStorage: new Backbone.LocalStorage('todos-backbone-marionette'),
-        comparator: 'created',
+		localStorage: new Backbone.LocalStorage('todos-backbone-marionette'),
 
-        getCompleted: function () {
-            return this.filter(this._isCompleted);
-        },
+		comparator: 'created',
 
-        getActive: function () {
-            return this.reject(this._isCompleted);
-        },
+		getCompleted: function () {
+			return this.filter(this._isCompleted);
+		},
 
-        _isCompleted: function (todo) {
-            return todo.isCompleted();
-        }
-    });
+		getActive: function () {
+			return this.reject(this._isCompleted);
+		},
 
+		_isCompleted: function (todo) {
+			return todo.isCompleted();
+		}
+	});
 })();
