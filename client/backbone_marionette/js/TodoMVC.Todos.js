@@ -1,9 +1,12 @@
 /*global Backbone, TodoMVC:true */
 
-var TodoMVC = TodoMVC || {};
+var Backbone = require('backbone');
+var BackboneLocalStorage = require('backbone.localstorage');
 
-(function () {
+var TodoMVCTodos = function () {
 	'use strict';
+
+	var TodoMVC = {};
 
 	TodoMVC.Todo = Backbone.Model.extend({
 		defaults: {
@@ -42,7 +45,7 @@ var TodoMVC = TodoMVC || {};
 	TodoMVC.TodoList = Backbone.Collection.extend({
 		model: TodoMVC.Todo,
 
-		localStorage: new Backbone.LocalStorage('todos-backbone-marionette'),
+		localStorage: new BackboneLocalStorage('todos-backbone-marionette'),
 
 		comparator: 'created',
 
@@ -58,4 +61,8 @@ var TodoMVC = TodoMVC || {};
 			return todo.isCompleted();
 		}
 	});
-})();
+
+	return TodoMVC;
+};
+
+exports.TodoMVCTodos = TodoMVCTodos;

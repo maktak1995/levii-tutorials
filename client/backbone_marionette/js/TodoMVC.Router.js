@@ -1,11 +1,22 @@
 /*global TodoMVC:true, Backbone, $ */
+var Mn = require('backbone.marionette');
+var Backbone = require('backbone');
+var BackboneRadio = require('backbone.radio');
+var App = require('./TodoMVC.Application');
+var Layout = require('./TodoMVC.Layout');
+var Todos = require('./TodoMVC.Todos');
+var TodoView = require('./TodoMVC.TodoList.Views');
 
-var TodoMVC = TodoMVC || {};
-
-(function () {
+var TodoMVCRouter = function () {
 	'use strict';
 
-	var filterChannel = Backbone.Radio.channel('filter');
+	var TodoMVC = {};
+	var TodoMVCTodos = Todos.TodoMVCTodos();
+	var TodoMVCLayout = Layout.TodoMVCLayout();
+	var TodoMVCApp = App.TodoMVCApp();
+	var TodoMVCTodoView = TodoView.TodoMVCTodoView();
+
+	var filterChannel = BackboneRadio.channel('filter');
 
 	TodoMVC.Router = Mn.AppRouter.extend({
 		appRoutes: {
@@ -16,7 +27,7 @@ var TodoMVC = TodoMVC || {};
 	TodoMVC.Controller = Mn.Object.extend({
 
 		initialize: function () {
-			this.todoList = new TodoMVC.TodoList();
+			this.todoList = new TodoMVCTodos.TodoList();
 		},
 
 		start: function () {
@@ -32,21 +43,21 @@ var TodoMVC = TodoMVC || {};
 		},
 
 		showHeader: function (todoList) {
-			var header = new TodoMVC.HeaderLayout({
+			var header = new TodoMVCLayout.HeaderLayout({
 				collection: todoList
 			});
-			TodoMVC.App.root.showChildView('header', header);
+			TodoMVCApp.root.showChildView('header', header);
 		},
 
 		showFooter: function (todoList) {
-			var footer = new TodoMVC.FooterLayout({
+			var footer = new TodoMVCLayout.FooterLayout({
 				collection: todoList
 			});
-			TodoMVC.App.root.showChildView('footer', footer);
+			TodoMVCApp.root.showChildView('footer', footer);
 		},
 
 		showTodoList: function (todoList) {
-			TodoMVC.App.root.showChildView('main', new TodoMVC.ListView({
+			TodoMVCApp.root.showChildView('main', new TodoMVCTodoView.ListView({
 				collection: todoList
 			}));
 		},
@@ -56,4 +67,8 @@ var TodoMVC = TodoMVC || {};
 			filterChannel.request('filterState').set('filter', newFilter);
 		}
 	});
-})();
+
+	return TodoMVC;
+};
+
+exports.TodoMVCRouter = TodoMVCRouter;

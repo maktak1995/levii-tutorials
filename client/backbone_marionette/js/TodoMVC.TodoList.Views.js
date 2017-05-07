@@ -1,11 +1,14 @@
 /*global TodoMVC: true, Backbone */
+var Mn = require('backbone.marionette');
+var Backbone = require('backbone');
+var BackboneRadio = require('backbone.radio');
 
-var TodoMVC = TodoMVC || {};
-
-(function () {
+var TodoMVCTodoView = function () {
 	'use strict';
 
-	var filterChannel = Backbone.Radio.channel('filter');
+	var TodoMVC = {};
+
+	var filterChannel = BackboneRadio.channel('filter');
 
 	TodoMVC.TodoView = Mn.View.extend({
 
@@ -141,4 +144,8 @@ var TodoMVC = TodoMVC || {};
 			}));
 		}
 	});
-})();
+
+	return TodoMVC;
+};
+
+exports.TodoMVCTodoView = TodoMVCTodoView;

@@ -1,13 +1,22 @@
 /*global Backbone, TodoMVC:true, $ */
 
-var TodoMVC = TodoMVC || {};
+import "../node_modules/todomvc-app-css/index.css";
+import "../node_modules/todomvc-common/base.css";
+import "../css/app.css";
+
+var Mn = require('backbone.marionette');
+var Backbone = require('backbone');
+var App = require('./TodoMVC.Application');
+var Router = require('./TodoMVC.Router');
 
 $(function () {
 	'use strict';
+	var TodoMVCApp = App.TodoMVCApp();
+	var TodoMVCRouter = Router.TodoMVCRouter();
 
-	TodoMVC.App.on('start', function () {
-		var controller = new TodoMVC.Controller();
-		controller.router = new TodoMVC.Router({
+	TodoMVCApp.on('start', function () {
+		var controller = new TodoMVCRouter.Controller();
+		controller.router = new TodoMVCRouter.Router({
 			controller: controller
 		});
 
@@ -15,5 +24,5 @@ $(function () {
 		Backbone.history.start();
 	});
 
-	TodoMVC.App.start();
+	TodoMVCApp.start();
 });

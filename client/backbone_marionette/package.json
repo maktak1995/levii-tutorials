@@ -5,9 +5,17 @@
     "backbone.localstorage": "^1.1.6",
     "backbone.marionette": "^3.0.0",
     "backbone.radio": "^2.0.0",
-    "jquery": "^1.11.2",
+    "css-loader": "^0.28.0",
+    "jquery": "^1.12.4",
+    "style-loader": "^0.17.0",
     "todomvc-app-css": "^1.0.1",
     "todomvc-common": "^1.0.1",
-    "underscore": "^1.6.0"
+    "underscore": "^1.6.0",
+    "webpack": "^2.4.1"
+  },
+  "devDependencies": {
+    "babel-core": "^6.24.1",
+    "babel-preset-es2015": "^6.24.1",
+    "webpack": "^2.4.1"
   }
 }
