@@ -1,15 +1,11 @@
 /*global TodoMVC:true, Backbone */
-var Mn = require('backbone.marionette');
-var Backbone = require('backbone');
-var BackboneRadio = require('backbone.radio');
-var Filter = require('./TodoMVC.FilterState');
 
-var TodoMVCLayout = function () {
+var TodoMVC = TodoMVC || {};
+
+(function () {
 	'use strict';
 
-	var TodoMVC = {};
-
-	var filterChannel = BackboneRadio.channel('filter');
+	var filterChannel = Backbone.Radio.channel('filter');
 
 	TodoMVC.RootLayout = Mn.View.extend({
 
@@ -22,10 +18,14 @@ var TodoMVCLayout = function () {
 		}
 	});
 
+	// Layout Header View
+	// ------------------
 	TodoMVC.HeaderLayout = Mn.View.extend({
 
 		template: '#template-header',
 
+		// UI bindings create cached attributes that
+		// point to jQuery selected objects
 		ui: {
 			input: '#new-todo'
 		},
@@ -35,6 +35,8 @@ var TodoMVCLayout = function () {
 			'keyup @ui.input': 'onInputKeyup'
 		},
 
+		// According to the spec
+		// If escape is pressed during the edit, the edit state should be left and any changes be discarded.
 		onInputKeyup: function (e) {
 			var ESC_KEY = 27;
 
@@ -56,10 +58,13 @@ var TodoMVCLayout = function () {
 		}
 	});
 
-
+	// Layout Footer View
+	// ------------------
 	TodoMVC.FooterLayout = Mn.View.extend({
 		template: '#template-footer',
 
+		// UI bindings create cached attributes that
+		// point to jQuery selected objects
 		ui: {
 			filters: '#filters a',
 			completed: '.completed a',
@@ -116,8 +121,4 @@ var TodoMVCLayout = function () {
 			});
 		}
 	});
-
-	return TodoMVC;
-};
-
-module.exports = TodoMVCLayout();
+})();

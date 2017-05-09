@@ -1,15 +1,17 @@
 /*global TodoMVC: true, Backbone */
-var Mn = require('backbone.marionette');
-var Backbone = require('backbone');
-var BackboneRadio = require('backbone.radio');
 
-var TodoMVCTodoView = function () {
+var TodoMVC = TodoMVC || {};
+
+(function () {
 	'use strict';
 
-	var TodoMVC = {};
+	var filterChannel = Backbone.Radio.channel('filter');
 
-	var filterChannel = BackboneRadio.channel('filter');
-
+	// Todo List Item View
+	// -------------------
+	//
+	// Display an individual todo item, and respond to changes
+	// that are made to the item, including marking completed.
 	TodoMVC.TodoView = Mn.View.extend({
 
 		tagName: 'li',
@@ -79,6 +81,11 @@ var TodoMVCTodoView = function () {
 		}
 	});
 
+	// Item List View Body
+	// --------------
+	//
+	// Controls the rendering of the list of items, including the
+	// filtering of items for display.
 	TodoMVC.ListViewBody = Mn.CollectionView.extend({
 		tagName: 'ul',
 
@@ -92,6 +99,10 @@ var TodoMVCTodoView = function () {
 		}
 	});
 
+	// Item List View
+	// --------------
+	//
+	// Manages List View
 	TodoMVC.ListView = Mn.View.extend({
 
 		template: '#template-todoListView',
@@ -144,8 +155,4 @@ var TodoMVCTodoView = function () {
 			}));
 		}
 	});
-
-	return TodoMVC;
-};
-
-module.exports = TodoMVCTodoView();
+})();

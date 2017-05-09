@@ -2,8 +2,10 @@
 <html lang="en" data-framework="marionettejs">
 	<head>
 		<meta charset="utf-8">
-		<link rel="stylesheet" href="builds/bundle.css" type="text/css" />
 		<title>Marionette • TodoMVC</title>
+		<link rel="stylesheet" href="node_modules/todomvc-app-css/index.css">
+		<link rel="stylesheet" href="node_modules/todomvc-common/base.css">
+		<link rel="stylesheet" href="css/app.css">
 	</head>
 	<body>
 		<section id="todoapp">
@@ -20,7 +22,6 @@
 			</p>
 			<p>See who else is using marionette at <a href="http://marionettejs.com/">marionettejs.com</a>.</p>
 		</footer>
-		<script src="builds/bundle.js"></script>
 		<script type="text/html" id="template-footer">
 			<span id="todo-count">
 				<strong><%= activeCount %></strong> <%= activeCountLabel() %>
@@ -55,5 +56,21 @@
 			<label for="toggle-all">Mark all as complete</label>
 			<ul></ul>
 		</script>
+		<!-- vendor libraries -->
+		<script src="node_modules/todomvc-common/base.js"></script>
+		<script src="node_modules/jquery/dist/jquery.js"></script>
+		<script src="node_modules/underscore/underscore.js"></script>
+		<script src="node_modules/backbone/backbone.js"></script>
+		<script src="node_modules/backbone.localstorage/backbone.localStorage.js"></script>
+		<script src="node_modules/backbone.radio/build/backbone.radio.js"></script>
+		<script src="node_modules/backbone.marionette/lib/backbone.marionette.js"></script>
+		<!-- application -->
+		<script src="js/TodoMVC.Application.js"></script>
+		<script src="js/TodoMVC.Todos.js"></script>
+		<script src="js/TodoMVC.Layout.js"></script>
+		<script src="js/TodoMVC.TodoList.Views.js"></script>
+		<script src="js/TodoMVC.Router.js"></script>
+		<script src="js/TodoMVC.FilterState.js"></script>
+		<script src="js/TodoMVC.js"></script>
 	</body>
 </html>
