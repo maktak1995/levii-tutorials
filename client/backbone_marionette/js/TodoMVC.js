@@ -1,15 +1,20 @@
 /*global Backbone, TodoMVC:true, $ */
 
-var TodoMVC = TodoMVC || {};
+import "../node_modules/todomvc-app-css/index.css";
+import "../node_modules/todomvc-common/base.css";
+import "../css/app.css";
+
+var Mn = require('backbone.marionette');
+var Backbone = require('backbone');
+var App = require('./TodoMVC.Application');
+var Router = require('./TodoMVC.Router');
 
 $(function () {
 	'use strict';
 
-	// After we initialize the app, we want to kick off the router
-	// and controller, which will handle initializing our Views
-	TodoMVC.App.on('start', function () {
-		var controller = new TodoMVC.Controller();
-		controller.router = new TodoMVC.Router({
+	App.on('start', function () {
+		var controller = new Router.Controller();
+		controller.router = new Router.Router({
 			controller: controller
 		});
 
@@ -17,6 +22,5 @@ $(function () {
 		Backbone.history.start();
 	});
 
-	// start the TodoMVC app (defined in js/TodoMVC.js)
-	TodoMVC.App.start();
+	App.start();
 });
