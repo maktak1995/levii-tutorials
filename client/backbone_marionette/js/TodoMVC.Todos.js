@@ -65,4 +65,4 @@ var TodoMVCTodos = function () {
 	return TodoMVC;
 };
 
-exports.TodoMVCTodos = TodoMVCTodos;
+module.exports = TodoMVCTodos();

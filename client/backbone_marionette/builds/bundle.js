@@ -63,7 +63,7 @@
 /******/ 	__webpack_require__.p = "builds/";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 13);
+/******/ 	return __webpack_require__(__webpack_require__.s = 14);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -1992,7 +1992,7 @@
   return Backbone;
 });
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(15)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(16)))
 
 /***/ }),
 /* 1 */
@@ -18417,27 +18417,22 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;//     Underscor
 /* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-
-
 /*global Backbone, TodoMVC:true */
 
 var Mn = __webpack_require__(1);
 var Backbone = __webpack_require__(0);
-var Layout = __webpack_require__(6);
+var Layout = __webpack_require__(7);
 
-var TodoMVCApp = function TodoMVCApp() {
+var TodoMVCApp = function () {
 	'use strict';
 
-	var TodoMVCLayout = Layout.TodoMVCLayout();
-
 	var TodoApp = Mn.Application.extend({
-		setRootLayout: function setRootLayout() {
-			this.root = new TodoMVCLayout.RootLayout();
+		setRootLayout: function () {
+			this.root = new Layout.RootLayout();
 		}
 	});
 
-	var TodoMVCApp = new TodoApp();
+  var TodoMVCApp = new TodoApp();
 
 	TodoMVCApp.on('before:start', function () {
 		TodoMVCApp.setRootLayout();
@@ -18445,26 +18440,48 @@ var TodoMVCApp = function TodoMVCApp() {
 	return TodoMVCApp;
 };
 
-exports.TodoMVCApp = TodoMVCApp;
+module.exports = TodoMVCApp();
+
 
 /***/ }),
 /* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
+/*global Backbone */
+var Backbone = __webpack_require__(0);
+var BackboneRadio = __webpack_require__(2);
 
+var filter = function () {
+	'use strict';
+	var filterState = new Backbone.Model({
+		filter: 'all'
+	});
+
+	var filterChannel = BackboneRadio.channel('filter');
+	filterChannel.reply('filterState', function () {
+		return filterState;
+	});
+};
+
+module.exports = filter();
+
+
+/***/ }),
+/* 7 */
+/***/ (function(module, exports, __webpack_require__) {
 
 /*global TodoMVC:true, Backbone */
 var Mn = __webpack_require__(1);
 var Backbone = __webpack_require__(0);
 var BackboneRadio = __webpack_require__(2);
+var Filter = __webpack_require__(6);
 
-var TodoMVCLayout = function TodoMVCLayout() {
+var TodoMVCLayout = function () {
 	'use strict';
 
 	var TodoMVC = {};
 
-	var filterChannel = filterChannel || BackboneRadio.channel('filter');
+	var filterChannel = BackboneRadio.channel('filter');
 
 	TodoMVC.RootLayout = Mn.View.extend({
 
@@ -18490,7 +18507,7 @@ var TodoMVCLayout = function TodoMVCLayout() {
 			'keyup @ui.input': 'onInputKeyup'
 		},
 
-		onInputKeyup: function onInputKeyup(e) {
+		onInputKeyup: function (e) {
 			var ESC_KEY = 27;
 
 			if (e.which === ESC_KEY) {
@@ -18498,7 +18515,7 @@ var TodoMVCLayout = function TodoMVCLayout() {
 			}
 		},
 
-		onInputKeypress: function onInputKeypress(e) {
+		onInputKeypress: function (e) {
 			var ENTER_KEY = 13;
 			var todoText = this.ui.input.val().trim();
 
@@ -18510,6 +18527,7 @@ var TodoMVCLayout = function TodoMVCLayout() {
 			}
 		}
 	});
+
 
 	TodoMVC.FooterLayout = Mn.View.extend({
 		template: '#template-footer',
@@ -18532,16 +18550,16 @@ var TodoMVCLayout = function TodoMVCLayout() {
 		},
 
 		templateContext: {
-			activeCountLabel: function activeCountLabel() {
+			activeCountLabel: function () {
 				return (this.activeCount === 1 ? 'item' : 'items') + ' left';
 			}
 		},
 
-		initialize: function initialize() {
+		initialize: function () {
 			this.listenTo(filterChannel.request('filterState'), 'change:filter', this.updateFilterSelection, this);
 		},
 
-		serializeData: function serializeData() {
+		serializeData: function () {
 			var active = this.collection.getActive().length;
 			var total = this.collection.length;
 
@@ -18552,17 +18570,18 @@ var TodoMVCLayout = function TodoMVCLayout() {
 			};
 		},
 
-		onRender: function onRender() {
+		onRender: function () {
 			this.$el.parent().toggle(this.collection.length > 0);
 			this.updateFilterSelection();
 		},
 
-		updateFilterSelection: function updateFilterSelection() {
+		updateFilterSelection: function () {
 			this.ui.filters.removeClass('selected');
-			this.ui[filterChannel.request('filterState').get('filter')].addClass('selected');
+			this.ui[filterChannel.request('filterState').get('filter')]
+			.addClass('selected');
 		},
 
-		onClearClick: function onClearClick() {
+		onClearClick: function () {
 			var completed = this.collection.getCompleted();
 			completed.forEach(function (todo) {
 				todo.destroy();
@@ -18573,32 +18592,27 @@ var TodoMVCLayout = function TodoMVCLayout() {
 	return TodoMVC;
 };
 
-exports.TodoMVCLayout = TodoMVCLayout;
+module.exports = TodoMVCLayout();
+
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-/* WEBPACK VAR INJECTION */(function($) {
-
-/*global TodoMVC:true, Backbone, $ */
+/* WEBPACK VAR INJECTION */(function($) {/*global TodoMVC:true, Backbone, $ */
 var Mn = __webpack_require__(1);
 var Backbone = __webpack_require__(0);
 var BackboneRadio = __webpack_require__(2);
 var App = __webpack_require__(5);
-var Layout = __webpack_require__(6);
-var Todos = __webpack_require__(12);
-var TodoView = __webpack_require__(11);
+var Layout = __webpack_require__(7);
+var Todos = __webpack_require__(13);
+var TodoView = __webpack_require__(12);
+var Filter = __webpack_require__(6);
 
-var TodoMVCRouter = function TodoMVCRouter() {
+var TodoMVCRouter = function () {
 	'use strict';
 
 	var TodoMVC = {};
-	var TodoMVCTodos = Todos.TodoMVCTodos();
-	var TodoMVCLayout = Layout.TodoMVCLayout();
-	var TodoMVCApp = App.TodoMVCApp();
-	var TodoMVCTodoView = TodoView.TodoMVCTodoView();
 
 	var filterChannel = BackboneRadio.channel('filter');
 
@@ -18610,11 +18624,11 @@ var TodoMVCRouter = function TodoMVCRouter() {
 
 	TodoMVC.Controller = Mn.Object.extend({
 
-		initialize: function initialize() {
-			this.todoList = new TodoMVCTodos.TodoList();
+		initialize: function () {
+			this.todoList = new Todos.TodoList();
 		},
 
-		start: function start() {
+		start: function () {
 			this.showHeader(this.todoList);
 			this.showFooter(this.todoList);
 			this.showTodoList(this.todoList);
@@ -18622,31 +18636,31 @@ var TodoMVCRouter = function TodoMVCRouter() {
 			this.todoList.fetch();
 		},
 
-		updateHiddenElements: function updateHiddenElements() {
+		updateHiddenElements: function () {
 			$('#main, #footer').toggle(!!this.todoList.length);
 		},
 
-		showHeader: function showHeader(todoList) {
-			var header = new TodoMVCLayout.HeaderLayout({
+		showHeader: function (todoList) {
+			var header = new Layout.HeaderLayout({
 				collection: todoList
 			});
-			TodoMVCApp.root.showChildView('header', header);
+			App.root.showChildView('header', header);
 		},
 
-		showFooter: function showFooter(todoList) {
-			var footer = new TodoMVCLayout.FooterLayout({
+		showFooter: function (todoList) {
+			var footer = new Layout.FooterLayout({
 				collection: todoList
 			});
-			TodoMVCApp.root.showChildView('footer', footer);
+			App.root.showChildView('footer', footer);
 		},
 
-		showTodoList: function showTodoList(todoList) {
-			TodoMVCApp.root.showChildView('main', new TodoMVCTodoView.ListView({
+		showTodoList: function (todoList) {
+			App.root.showChildView('main', new TodoView.ListView({
 				collection: todoList
 			}));
 		},
 
-		filterItems: function filterItems(filter) {
+		filterItems: function (filter) {
 			var newFilter = filter && filter.trim() || 'all';
 			filterChannel.request('filterState').set('filter', newFilter);
 		}
@@ -18655,14 +18669,9 @@ var TodoMVCRouter = function TodoMVCRouter() {
 	return TodoMVC;
 };
 
-exports.TodoMVCRouter = TodoMVCRouter;
+module.exports = TodoMVCRouter();
+
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
-
-/***/ }),
-/* 8 */
-/***/ (function(module, exports) {
-
-// removed by extract-text-webpack-plugin
 
 /***/ }),
 /* 9 */
@@ -18678,17 +18687,20 @@ exports.TodoMVCRouter = TodoMVCRouter;
 
 /***/ }),
 /* 11 */
+/***/ (function(module, exports) {
+
+// removed by extract-text-webpack-plugin
+
+/***/ }),
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
 
 /*global TodoMVC: true, Backbone */
 var Mn = __webpack_require__(1);
 var Backbone = __webpack_require__(0);
 var BackboneRadio = __webpack_require__(2);
 
-var TodoMVCTodoView = function TodoMVCTodoView() {
+var TodoMVCTodoView = function () {
 	'use strict';
 
 	var TodoMVC = {};
@@ -18701,7 +18713,7 @@ var TodoMVCTodoView = function TodoMVCTodoView() {
 
 		template: '#template-todoItemView',
 
-		className: function className() {
+		className: function () {
 			return this.model.get('completed') ? 'completed' : 'active';
 		},
 
@@ -18724,21 +18736,21 @@ var TodoMVCTodoView = function TodoMVCTodoView() {
 			change: 'render'
 		},
 
-		deleteModel: function deleteModel() {
+		deleteModel: function () {
 			this.model.destroy();
 		},
 
-		toggle: function toggle() {
+		toggle: function () {
 			this.model.toggle().save();
 		},
 
-		onEditClick: function onEditClick() {
+		onEditClick: function () {
 			this.$el.addClass('editing');
 			this.ui.edit.focus();
 			this.ui.edit.val(this.ui.edit.val());
 		},
 
-		onEditFocusout: function onEditFocusout() {
+		onEditFocusout: function () {
 			var todoText = this.ui.edit.val().trim();
 			if (todoText) {
 				this.model.set('title', todoText).save();
@@ -18748,7 +18760,7 @@ var TodoMVCTodoView = function TodoMVCTodoView() {
 			}
 		},
 
-		onEditKeypress: function onEditKeypress(e) {
+		onEditKeypress: function (e) {
 			var ENTER_KEY = 13;
 			var ESC_KEY = 27;
 
@@ -18771,7 +18783,7 @@ var TodoMVCTodoView = function TodoMVCTodoView() {
 
 		childView: TodoMVC.TodoView,
 
-		filter: function filter(child) {
+		filter: function (child) {
 			var filteredOn = filterChannel.request('filterState').get('filter');
 			return child.matchesFilter(filteredOn);
 		}
@@ -18801,11 +18813,11 @@ var TodoMVCTodoView = function TodoMVCTodoView() {
 			all: 'setCheckAllState'
 		},
 
-		initialize: function initialize() {
+		initialize: function () {
 			this.listenTo(filterChannel.request('filterState'), 'change:filter', this.render, this);
 		},
 
-		setCheckAllState: function setCheckAllState() {
+		setCheckAllState: function () {
 			function reduceCompleted(left, right) {
 				return left && right.get('completed');
 			}
@@ -18815,7 +18827,7 @@ var TodoMVCTodoView = function TodoMVCTodoView() {
 			this.$el.parent().toggle(!!this.collection.length);
 		},
 
-		onToggleAllClick: function onToggleAllClick(e) {
+		onToggleAllClick: function (e) {
 			var isChecked = e.currentTarget.checked;
 
 			this.collection.each(function (todo) {
@@ -18823,7 +18835,7 @@ var TodoMVCTodoView = function TodoMVCTodoView() {
 			});
 		},
 
-		onRender: function onRender() {
+		onRender: function () {
 			this.showChildView('listBody', new TodoMVC.ListViewBody({
 				collection: this.collection
 			}));
@@ -18833,21 +18845,19 @@ var TodoMVCTodoView = function TodoMVCTodoView() {
 	return TodoMVC;
 };
 
-exports.TodoMVCTodoView = TodoMVCTodoView;
+module.exports = TodoMVCTodoView();
+
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
 
 /*global Backbone, TodoMVC:true */
 
 var Backbone = __webpack_require__(0);
-var BackboneLocalStorage = __webpack_require__(14);
+var BackboneLocalStorage = __webpack_require__(15);
 
-var TodoMVCTodos = function TodoMVCTodos() {
+var TodoMVCTodos = function () {
 	'use strict';
 
 	var TodoMVC = {};
@@ -18859,21 +18869,21 @@ var TodoMVCTodos = function TodoMVCTodos() {
 			created: 0
 		},
 
-		initialize: function initialize() {
+		initialize: function () {
 			if (this.isNew()) {
 				this.set('created', Date.now());
 			}
 		},
 
-		toggle: function toggle() {
+		toggle: function () {
 			return this.set('completed', !this.isCompleted());
 		},
 
-		isCompleted: function isCompleted() {
+		isCompleted: function () {
 			return this.get('completed');
 		},
 
-		matchesFilter: function matchesFilter(filter) {
+		matchesFilter: function (filter) {
 			if (filter === 'all') {
 				return true;
 			}
@@ -18893,15 +18903,15 @@ var TodoMVCTodos = function TodoMVCTodos() {
 
 		comparator: 'created',
 
-		getCompleted: function getCompleted() {
+		getCompleted: function () {
 			return this.filter(this._isCompleted);
 		},
 
-		getActive: function getActive() {
+		getActive: function () {
 			return this.reject(this._isCompleted);
 		},
 
-		_isCompleted: function _isCompleted(todo) {
+		_isCompleted: function (todo) {
 			return todo.isCompleted();
 		}
 	});
@@ -18909,36 +18919,38 @@ var TodoMVCTodos = function TodoMVCTodos() {
 	return TodoMVC;
 };
 
-exports.TodoMVCTodos = TodoMVCTodos;
+module.exports = TodoMVCTodos();
+
 
 /***/ }),
-/* 13 */
-/***/ (function(module, exports, __webpack_require__) {
+/* 14 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* WEBPACK VAR INJECTION */(function($) {
+/* WEBPACK VAR INJECTION */(function($) {Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node_modules_todomvc_app_css_index_css__ = __webpack_require__(10);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node_modules_todomvc_app_css_index_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__node_modules_todomvc_app_css_index_css__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_modules_todomvc_common_base_css__ = __webpack_require__(11);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_modules_todomvc_common_base_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__node_modules_todomvc_common_base_css__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__css_app_css__ = __webpack_require__(9);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__css_app_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2__css_app_css__);
+/*global Backbone, TodoMVC:true, $ */
 
-__webpack_require__(9);
 
-__webpack_require__(10);
 
-__webpack_require__(8);
 
-var Mn = __webpack_require__(1); /*global Backbone, TodoMVC:true, $ */
 
+var Mn = __webpack_require__(1);
 var Backbone = __webpack_require__(0);
 var App = __webpack_require__(5);
-var Router = __webpack_require__(7);
+var Router = __webpack_require__(8);
 
 $(function () {
 	'use strict';
 
-	var TodoMVCApp = App.TodoMVCApp();
-	var TodoMVCRouter = Router.TodoMVCRouter();
-
-	TodoMVCApp.on('start', function () {
-		var controller = new TodoMVCRouter.Controller();
-		controller.router = new TodoMVCRouter.Router({
+	App.on('start', function () {
+		var controller = new Router.Controller();
+		controller.router = new Router.Router({
 			controller: controller
 		});
 
@@ -18946,12 +18958,13 @@ $(function () {
 		Backbone.history.start();
 	});
 
-	TodoMVCApp.start();
+	App.start();
 });
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
+
+/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(3)))
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -19215,7 +19228,7 @@ return Backbone.LocalStorage;
 
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, exports) {
 
 var g;

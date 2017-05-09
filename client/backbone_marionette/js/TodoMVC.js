@@ -11,12 +11,10 @@ var Router = require('./TodoMVC.Router');
 
 $(function () {
 	'use strict';
-	var TodoMVCApp = App.TodoMVCApp();
-	var TodoMVCRouter = Router.TodoMVCRouter();
 
-	TodoMVCApp.on('start', function () {
-		var controller = new TodoMVCRouter.Controller();
-		controller.router = new TodoMVCRouter.Router({
+	App.on('start', function () {
+		var controller = new Router.Controller();
+		controller.router = new Router.Router({
 			controller: controller
 		});
 
@@ -24,5 +22,5 @@ $(function () {
 		Backbone.history.start();
 	});
 
-	TodoMVCApp.start();
+	App.start();
 });

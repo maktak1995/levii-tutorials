@@ -6,15 +6,12 @@ var App = require('./TodoMVC.Application');
 var Layout = require('./TodoMVC.Layout');
 var Todos = require('./TodoMVC.Todos');
 var TodoView = require('./TodoMVC.TodoList.Views');
+var Filter = require('./TodoMVC.FilterState');
 
 var TodoMVCRouter = function () {
 	'use strict';
 
 	var TodoMVC = {};
-	var TodoMVCTodos = Todos.TodoMVCTodos();
-	var TodoMVCLayout = Layout.TodoMVCLayout();
-	var TodoMVCApp = App.TodoMVCApp();
-	var TodoMVCTodoView = TodoView.TodoMVCTodoView();
 
 	var filterChannel = BackboneRadio.channel('filter');
 
@@ -27,7 +24,7 @@ var TodoMVCRouter = function () {
 	TodoMVC.Controller = Mn.Object.extend({
 
 		initialize: function () {
-			this.todoList = new TodoMVCTodos.TodoList();
+			this.todoList = new Todos.TodoList();
 		},
 
 		start: function () {
@@ -43,21 +40,21 @@ var TodoMVCRouter = function () {
 		},
 
 		showHeader: function (todoList) {
-			var header = new TodoMVCLayout.HeaderLayout({
+			var header = new Layout.HeaderLayout({
 				collection: todoList
 			});
-			TodoMVCApp.root.showChildView('header', header);
+			App.root.showChildView('header', header);
 		},
 
 		showFooter: function (todoList) {
-			var footer = new TodoMVCLayout.FooterLayout({
+			var footer = new Layout.FooterLayout({
 				collection: todoList
 			});
-			TodoMVCApp.root.showChildView('footer', footer);
+			App.root.showChildView('footer', footer);
 		},
 
 		showTodoList: function (todoList) {
-			TodoMVCApp.root.showChildView('main', new TodoMVCTodoView.ListView({
+			App.root.showChildView('main', new TodoView.ListView({
 				collection: todoList
 			}));
 		},
@@ -71,4 +68,4 @@ var TodoMVCRouter = function () {
 	return TodoMVC;
 };
 
-exports.TodoMVCRouter = TodoMVCRouter;
+module.exports = TodoMVCRouter();

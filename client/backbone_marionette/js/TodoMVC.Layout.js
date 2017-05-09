@@ -2,13 +2,14 @@
 var Mn = require('backbone.marionette');
 var Backbone = require('backbone');
 var BackboneRadio = require('backbone.radio');
+var Filter = require('./TodoMVC.FilterState');
 
 var TodoMVCLayout = function () {
 	'use strict';
 
 	var TodoMVC = {};
 
-	var filterChannel = filterChannel || BackboneRadio.channel('filter');
+	var filterChannel = BackboneRadio.channel('filter');
 
 	TodoMVC.RootLayout = Mn.View.extend({
 
@@ -119,4 +120,4 @@ var TodoMVCLayout = function () {
 	return TodoMVC;
 };
 
-exports.TodoMVCLayout = TodoMVCLayout;
+module.exports = TodoMVCLayout();

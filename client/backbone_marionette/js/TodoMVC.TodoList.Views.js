@@ -148,4 +148,4 @@ var TodoMVCTodoView = function () {
 	return TodoMVC;
 };
 
-exports.TodoMVCTodoView = TodoMVCTodoView;
+module.exports = TodoMVCTodoView();

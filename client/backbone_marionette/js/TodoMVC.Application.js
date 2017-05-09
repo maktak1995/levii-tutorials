@@ -7,11 +7,9 @@ var Layout = require('./TodoMVC.Layout');
 var TodoMVCApp = function () {
 	'use strict';
 
-	var TodoMVCLayout = Layout.TodoMVCLayout();
-
 	var TodoApp = Mn.Application.extend({
 		setRootLayout: function () {
-			this.root = new TodoMVCLayout.RootLayout();
+			this.root = new Layout.RootLayout();
 		}
 	});
 
@@ -23,4 +21,4 @@ var TodoMVCApp = function () {
 	return TodoMVCApp;
 };
 
-exports.TodoMVCApp = TodoMVCApp;
+module.exports = TodoMVCApp();
