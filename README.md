@@ -6,6 +6,6 @@
 
 ---
 
-* Update:2017/4/7
-  - Add webpack
-  - Change directory map
+* Update:2017/5/9
+  - Add backbone_marionette
+  - Install webpack to TodoMVC

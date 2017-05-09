@@ -119,4 +119,7 @@ Temporary Items
 .apdisk
 
 .idea/
+# node-js
 node_modules
+*.babelrc
+*.eslintrc
