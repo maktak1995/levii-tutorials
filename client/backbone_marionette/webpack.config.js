@@ -1,5 +1,4 @@
 var webpack = require('webpack');
-var CleanPlugin = require('clean-webpack-plugin');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 module.exports = {
@@ -12,11 +11,6 @@ module.exports = {
     },
     plugins: [
        new ExtractTextPlugin('bundle.css'),
-       new webpack.optimize.CommonsChunkPlugin({
-           name:      'main',
-           children:  true,
-           minChunks: 2
-       }),
        new webpack.ProvidePlugin({
          $: "jquery",
          jQuery: "jquery",
@@ -32,10 +26,6 @@ module.exports = {
             {
               test:   /\.html/,
               use : ['html-loader'],
-            },
-            {
-              test:   /\.(png|gif|jpe?g|svg)$/i,
-              use : ['url-loader'],
             },
         ],
     },
