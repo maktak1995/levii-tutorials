@@ -3,66 +3,58 @@
 var Backbone = require('backbone');
 var BackboneLocalStorage = require('backbone.localstorage');
 
-var TodoMVCTodos = function () {
-	'use strict';
+'use strict';
 
-	var TodoMVC = {};
+module.exports.Todo = Backbone.Model.extend({
+	defaults: {
+		title: '',
+		completed: false,
+		created: 0
+	},
 
-	TodoMVC.Todo = Backbone.Model.extend({
-		defaults: {
-			title: '',
-			completed: false,
-			created: 0
-		},
-
-		initialize: function () {
-			if (this.isNew()) {
-				this.set('created', Date.now());
-			}
-		},
-
-		toggle: function () {
-			return this.set('completed', !this.isCompleted());
-		},
-
-		isCompleted: function () {
-			return this.get('completed');
-		},
-
-		matchesFilter: function (filter) {
-			if (filter === 'all') {
-				return true;
-			}
-
-			if (filter === 'active') {
-				return !this.isCompleted();
-			}
-
-			return this.isCompleted();
+	initialize: function () {
+		if (this.isNew()) {
+			this.set('created', Date.now());
 		}
-	});
+	},
 
-	TodoMVC.TodoList = Backbone.Collection.extend({
-		model: TodoMVC.Todo,
+	toggle: function () {
+		return this.set('completed', !this.isCompleted());
+	},
 
-		localStorage: new BackboneLocalStorage('todos-backbone-marionette'),
+	isCompleted: function () {
+		return this.get('completed');
+	},
+
+	matchesFilter: function (filter) {
+		if (filter === 'all') {
+			return true;
+		}
+
+		if (filter === 'active') {
+			return !this.isCompleted();
+		}
+
+		return this.isCompleted();
+	}
+});
+
+module.exports.TodoList = Backbone.Collection.extend({
+	model: module.exports.Todo,
+
+	localStorage: new BackboneLocalStorage('todos-backbone-marionette'),
 
 		comparator: 'created',
 
-		getCompleted: function () {
-			return this.filter(this._isCompleted);
-		},
+	getCompleted: function () {
+		return this.filter(this._isCompleted);
+	},
 
-		getActive: function () {
-			return this.reject(this._isCompleted);
-		},
+	getActive: function () {
+		return this.reject(this._isCompleted);
+	},
 
-		_isCompleted: function (todo) {
-			return todo.isCompleted();
-		}
-	});
-
-	return TodoMVC;
-};
-
-module.exports = TodoMVCTodos();
+	_isCompleted: function (todo) {
+		return todo.isCompleted();
+	}
+});

@@ -63,7 +63,7 @@
 /******/ 	__webpack_require__.p = "builds/";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 14);
+/******/ 	return __webpack_require__(__webpack_require__.s = 13);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -2009,7 +2009,7 @@
 
 
 (function (global, factory) {
-	 true ? module.exports = factory(__webpack_require__(0), __webpack_require__(3), __webpack_require__(7)) :
+	 true ? module.exports = factory(__webpack_require__(0), __webpack_require__(3), __webpack_require__(15)) :
 	typeof define === 'function' && define.amd ? define(['backbone', 'underscore', 'backbone.radio'], factory) :
 	(global.Marionette = global['Mn'] = factory(global.Backbone,global._,global.Backbone.Radio));
 }(this, (function (Backbone,_,Radio) { 'use strict';
@@ -18068,24 +18068,21 @@ var Mn = __webpack_require__(1);
 var Backbone = __webpack_require__(0);
 var Layout = __webpack_require__(6);
 
-var TodoMVCApp = function () {
-	'use strict';
+'use strict';
 
-	var TodoApp = Mn.Application.extend({
-		setRootLayout: function () {
-			this.root = new Layout.RootLayout();
-		}
-	});
+var TodoApp = Mn.Application.extend({
+	setRootLayout: function () {
+		this.root = new Layout.RootLayout();
+	}
+});
 
-  var TodoMVCApp = new TodoApp();
+var TodoMVCApp = new TodoApp();
 
-	TodoMVCApp.on('before:start', function () {
-		TodoMVCApp.setRootLayout();
-	});
-	return TodoMVCApp;
-};
+TodoMVCApp.on('before:start', function () {
+	TodoMVCApp.setRootLayout();
+});
 
-module.exports = TodoMVCApp();
+module.exports = TodoMVCApp;
 
 
 /***/ }),
@@ -18095,19 +18092,15 @@ module.exports = TodoMVCApp();
 /*global Backbone */
 var Backbone = __webpack_require__(0);
 
-var filter = function () {
-	'use strict';
-	var filterState = new Backbone.Model({
-		filter: 'all'
-	});
+'use strict';
+var filterState = new Backbone.Model({
+	filter: 'all'
+});
 
-	var filterChannel = Backbone.Radio.channel('filter');
-	filterChannel.reply('filterState', function () {
-		return filterState;
-	});
-};
-
-module.exports = filter();
+var filterChannel = Backbone.Radio.channel('filter');
+filterChannel.reply('filterState', function () {
+	return filterState;
+});
 
 
 /***/ }),
@@ -18117,130 +18110,732 @@ module.exports = filter();
 /*global TodoMVC:true, Backbone */
 var Mn = __webpack_require__(1);
 var Backbone = __webpack_require__(0);
-var BackboneRadio = __webpack_require__(7);
 var Filter = __webpack_require__(5);
 
-var TodoMVCLayout = function () {
-	'use strict';
+'use strict';
 
-	var TodoMVC = {};
+var filterChannel = Backbone.Radio.channel('filter');
 
-	var filterChannel = BackboneRadio.channel('filter');
+module.exports.RootLayout = Mn.View.extend({
 
-	TodoMVC.RootLayout = Mn.View.extend({
+	el: '#todoapp',
 
-		el: '#todoapp',
+	regions: {
+		header: '#header',
+		main: '#main',
+		footer: '#footer'
+	}
+});
 
-		regions: {
-			header: '#header',
-			main: '#main',
-			footer: '#footer'
+module.exports.HeaderLayout = Mn.View.extend({
+
+	template: '#template-header',
+
+	ui: {
+		input: '#new-todo'
+	},
+
+	events: {
+		'keypress @ui.input': 'onInputKeypress',
+		'keyup @ui.input': 'onInputKeyup'
+	},
+
+	onInputKeyup: function (e) {
+		var ESC_KEY = 27;
+
+		if (e.which === ESC_KEY) {
+			this.render();
 		}
-	});
+	},
 
-	TodoMVC.HeaderLayout = Mn.View.extend({
+	onInputKeypress: function (e) {
+		var ENTER_KEY = 13;
+		var todoText = this.ui.input.val().trim();
 
-		template: '#template-header',
-
-		ui: {
-			input: '#new-todo'
-		},
-
-		events: {
-			'keypress @ui.input': 'onInputKeypress',
-			'keyup @ui.input': 'onInputKeyup'
-		},
-
-		onInputKeyup: function (e) {
-			var ESC_KEY = 27;
-
-			if (e.which === ESC_KEY) {
-				this.render();
-			}
-		},
-
-		onInputKeypress: function (e) {
-			var ENTER_KEY = 13;
-			var todoText = this.ui.input.val().trim();
-
-			if (e.which === ENTER_KEY && todoText) {
-				this.collection.create({
-					title: todoText
-				});
-				this.ui.input.val('');
-			}
-		}
-	});
-
-
-	TodoMVC.FooterLayout = Mn.View.extend({
-		template: '#template-footer',
-
-		ui: {
-			filters: '#filters a',
-			completed: '.completed a',
-			active: '.active a',
-			all: '.all a',
-			summary: '#todo-count',
-			clear: '#clear-completed'
-		},
-
-		events: {
-			'click @ui.clear': 'onClearClick'
-		},
-
-		collectionEvents: {
-			all: 'render'
-		},
-
-		templateContext: {
-			activeCountLabel: function () {
-				return (this.activeCount === 1 ? 'item' : 'items') + ' left';
-			}
-		},
-
-		initialize: function () {
-			this.listenTo(filterChannel.request('filterState'), 'change:filter', this.updateFilterSelection, this);
-		},
-
-		serializeData: function () {
-			var active = this.collection.getActive().length;
-			var total = this.collection.length;
-
-			return {
-				activeCount: active,
-				totalCount: total,
-				completedCount: total - active
-			};
-		},
-
-		onRender: function () {
-			this.$el.parent().toggle(this.collection.length > 0);
-			this.updateFilterSelection();
-		},
-
-		updateFilterSelection: function () {
-			this.ui.filters.removeClass('selected');
-			this.ui[filterChannel.request('filterState').get('filter')]
-			.addClass('selected');
-		},
-
-		onClearClick: function () {
-			var completed = this.collection.getCompleted();
-			completed.forEach(function (todo) {
-				todo.destroy();
+		if (e.which === ENTER_KEY && todoText) {
+			this.collection.create({
+				title: todoText
 			});
+			this.ui.input.val('');
 		}
-	});
+	}
+});
 
-	return TodoMVC;
-};
 
-module.exports = TodoMVCLayout();
+module.exports.FooterLayout = Mn.View.extend({
+	template: '#template-footer',
+
+	ui: {
+		filters: '#filters a',
+		completed: '.completed a',
+		active: '.active a',
+		all: '.all a',
+		summary: '#todo-count',
+		clear: '#clear-completed'
+	},
+
+	events: {
+		'click @ui.clear': 'onClearClick'
+	},
+
+	collectionEvents: {
+		all: 'render'
+	},
+
+	templateContext: {
+		activeCountLabel: function () {
+			return (this.activeCount === 1 ? 'item' : 'items') + ' left';
+		}
+	},
+
+	initialize: function () {
+		this.listenTo(filterChannel.request('filterState'), 'change:filter', this.updateFilterSelection, this);
+	},
+
+	serializeData: function () {
+		var active = this.collection.getActive().length;
+		var total = this.collection.length;
+
+		return {
+			activeCount: active,
+			totalCount: total,
+			completedCount: total - active
+		};
+	},
+
+	onRender: function () {
+		this.$el.parent().toggle(this.collection.length > 0);
+		this.updateFilterSelection();
+	},
+
+	updateFilterSelection: function () {
+		this.ui.filters.removeClass('selected');
+		this.ui[filterChannel.request('filterState').get('filter')]
+		.addClass('selected');
+	},
+
+	onClearClick: function () {
+		var completed = this.collection.getCompleted();
+		completed.forEach(function (todo) {
+			todo.destroy();
+		});
+	}
+});
 
 
 /***/ }),
 /* 7 */
+/***/ (function(module, exports, __webpack_require__) {
+
+/* WEBPACK VAR INJECTION */(function($) {/*global TodoMVC:true, Backbone, $ */
+var Mn = __webpack_require__(1);
+var Backbone = __webpack_require__(0);
+var App = __webpack_require__(4);
+var Layout = __webpack_require__(6);
+var Todos = __webpack_require__(12);
+var TodoView = __webpack_require__(11);
+var Filter = __webpack_require__(5);
+
+'use strict';
+
+var filterChannel = Backbone.Radio.channel('filter');
+
+module.exports.Router = Mn.AppRouter.extend({
+	appRoutes: {
+		'*filter': 'filterItems'
+	}
+});
+
+module.exports.Controller = Mn.Object.extend({
+
+	initialize: function () {
+		this.todoList = new Todos.TodoList();
+	},
+
+	start: function () {
+		this.showHeader(this.todoList);
+		this.showFooter(this.todoList);
+		this.showTodoList(this.todoList);
+		this.todoList.on('all', this.updateHiddenElements, this);
+		this.todoList.fetch();
+	},
+
+	updateHiddenElements: function () {
+		$('#main, #footer').toggle(!!this.todoList.length);
+	},
+
+	showHeader: function (todoList) {
+		var header = new Layout.HeaderLayout({
+			collection: todoList
+		});
+		App.root.showChildView('header', header);
+	},
+
+	showFooter: function (todoList) {
+		var footer = new Layout.FooterLayout({
+			collection: todoList
+		});
+		App.root.showChildView('footer', footer);
+	},
+
+	showTodoList: function (todoList) {
+		App.root.showChildView('main', new TodoView.ListView({
+			collection: todoList
+		}));
+	},
+
+	filterItems: function (filter) {
+		var newFilter = filter && filter.trim() || 'all';
+		filterChannel.request('filterState').set('filter', newFilter);
+	}
+});
+
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
+
+/***/ }),
+/* 8 */
+/***/ (function(module, exports) {
+
+// removed by extract-text-webpack-plugin
+
+/***/ }),
+/* 9 */
+/***/ (function(module, exports) {
+
+// removed by extract-text-webpack-plugin
+
+/***/ }),
+/* 10 */
+/***/ (function(module, exports) {
+
+// removed by extract-text-webpack-plugin
+
+/***/ }),
+/* 11 */
+/***/ (function(module, exports, __webpack_require__) {
+
+/*global TodoMVC: true, Backbone */
+var Mn = __webpack_require__(1);
+var Backbone = __webpack_require__(0);
+
+'use strict';
+
+var TodoMVC = {};
+
+var filterChannel = Backbone.Radio.channel('filter');
+
+TodoMVC.TodoView = Mn.View.extend({
+
+	tagName: 'li',
+
+	template: '#template-todoItemView',
+
+	className: function () {
+		return this.model.get('completed') ? 'completed' : 'active';
+	},
+
+	ui: {
+		edit: '.edit',
+		destroy: '.destroy',
+		label: 'label',
+		toggle: '.toggle'
+	},
+
+	events: {
+		'click @ui.destroy': 'deleteModel',
+		'dblclick @ui.label': 'onEditClick',
+		'keydown @ui.edit': 'onEditKeypress',
+		'focusout @ui.edit': 'onEditFocusout',
+		'click @ui.toggle': 'toggle'
+	},
+
+	modelEvents: {
+		change: 'render'
+	},
+
+	deleteModel: function () {
+		this.model.destroy();
+	},
+
+	toggle: function () {
+		this.model.toggle().save();
+	},
+
+	onEditClick: function () {
+		this.$el.addClass('editing');
+		this.ui.edit.focus();
+		this.ui.edit.val(this.ui.edit.val());
+	},
+
+	onEditFocusout: function () {
+		var todoText = this.ui.edit.val().trim();
+		if (todoText) {
+			this.model.set('title', todoText).save();
+			this.$el.removeClass('editing');
+		} else {
+			this.destroy();
+		}
+	},
+
+	onEditKeypress: function (e) {
+		var ENTER_KEY = 13;
+		var ESC_KEY = 27;
+
+		if (e.which === ENTER_KEY) {
+			this.onEditFocusout();
+			return;
+		}
+
+		if (e.which === ESC_KEY) {
+			this.ui.edit.val(this.model.get('title'));
+			this.$el.removeClass('editing');
+		}
+	}
+});
+
+TodoMVC.ListViewBody = Mn.CollectionView.extend({
+	tagName: 'ul',
+
+	id: 'todo-list',
+
+	childView: TodoMVC.TodoView,
+
+	filter: function (child) {
+		var filteredOn = filterChannel.request('filterState').get('filter');
+		return child.matchesFilter(filteredOn);
+	}
+});
+
+TodoMVC.ListView = Mn.View.extend({
+
+	template: '#template-todoListView',
+
+	regions: {
+		listBody: {
+			el: 'ul',
+			replaceElement: true
+		}
+	},
+
+	ui: {
+		toggle: '#toggle-all'
+	},
+
+	events: {
+		'click @ui.toggle': 'onToggleAllClick'
+	},
+
+	collectionEvents: {
+		'change:completed': 'render',
+		all: 'setCheckAllState'
+	},
+
+	initialize: function () {
+		this.listenTo(filterChannel.request('filterState'), 'change:filter', this.render, this);
+	},
+
+	setCheckAllState: function () {
+		function reduceCompleted(left, right) {
+			return left && right.get('completed');
+		}
+
+		var allCompleted = this.collection.reduce(reduceCompleted, true);
+		this.ui.toggle.prop('checked', allCompleted);
+		this.$el.parent().toggle(!!this.collection.length);
+	},
+
+	onToggleAllClick: function (e) {
+		var isChecked = e.currentTarget.checked;
+
+		this.collection.each(function (todo) {
+			todo.save({ completed: isChecked });
+		});
+	},
+
+	onRender: function () {
+		this.showChildView('listBody', new TodoMVC.ListViewBody({
+			collection: this.collection
+		}));
+	}
+});
+
+
+module.exports = TodoMVC;
+
+
+/***/ }),
+/* 12 */
+/***/ (function(module, exports, __webpack_require__) {
+
+/*global Backbone, TodoMVC:true */
+
+var Backbone = __webpack_require__(0);
+var BackboneLocalStorage = __webpack_require__(14);
+
+'use strict';
+
+module.exports.Todo = Backbone.Model.extend({
+	defaults: {
+		title: '',
+		completed: false,
+		created: 0
+	},
+
+	initialize: function () {
+		if (this.isNew()) {
+			this.set('created', Date.now());
+		}
+	},
+
+	toggle: function () {
+		return this.set('completed', !this.isCompleted());
+	},
+
+	isCompleted: function () {
+		return this.get('completed');
+	},
+
+	matchesFilter: function (filter) {
+		if (filter === 'all') {
+			return true;
+		}
+
+		if (filter === 'active') {
+			return !this.isCompleted();
+		}
+
+		return this.isCompleted();
+	}
+});
+
+module.exports.TodoList = Backbone.Collection.extend({
+	model: module.exports.Todo,
+
+	localStorage: new BackboneLocalStorage('todos-backbone-marionette'),
+
+		comparator: 'created',
+
+	getCompleted: function () {
+		return this.filter(this._isCompleted);
+	},
+
+	getActive: function () {
+		return this.reject(this._isCompleted);
+	},
+
+	_isCompleted: function (todo) {
+		return todo.isCompleted();
+	}
+});
+
+
+/***/ }),
+/* 13 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function($) {Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node_modules_todomvc_app_css_index_css__ = __webpack_require__(9);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node_modules_todomvc_app_css_index_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__node_modules_todomvc_app_css_index_css__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_modules_todomvc_common_base_css__ = __webpack_require__(10);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_modules_todomvc_common_base_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__node_modules_todomvc_common_base_css__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__css_app_css__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__css_app_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2__css_app_css__);
+/*global Backbone, TodoMVC:true, $ */
+
+
+
+
+
+var Mn = __webpack_require__(1);
+var Backbone = __webpack_require__(0);
+var App = __webpack_require__(4);
+var Router = __webpack_require__(7);
+
+$(function () {
+	'use strict';
+
+	App.on('start', function () {
+		var controller = new Router.Controller();
+		controller.router = new Router.Router({
+			controller: controller
+		});
+
+		controller.start();
+		Backbone.history.start();
+	});
+
+	App.start();
+});
+
+/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(2)))
+
+/***/ }),
+/* 14 */
+/***/ (function(module, exports, __webpack_require__) {
+
+/**
+ * Backbone localStorage Adapter
+ * Version 1.1.16
+ *
+ * https://github.com/jeromegn/Backbone.localStorage
+ */
+(function (root, factory) {
+  if (true) {
+    module.exports = factory(__webpack_require__(0));
+  } else if (typeof define === "function" && define.amd) {
+    // AMD. Register as an anonymous module.
+    define(["backbone"], function(Backbone) {
+      // Use global variables if the locals are undefined.
+      return factory(Backbone || root.Backbone);
+    });
+  } else {
+    factory(Backbone);
+  }
+}(this, function(Backbone) {
+// A simple module to replace `Backbone.sync` with *localStorage*-based
+// persistence. Models are given GUIDS, and saved into a JSON object. Simple
+// as that.
+
+// Generate four random hex digits.
+function S4() {
+   return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
+};
+
+// Generate a pseudo-GUID by concatenating random hexadecimal.
+function guid() {
+   return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
+};
+
+function isObject(item) {
+  return item === Object(item);
+}
+
+function contains(array, item) {
+  var i = array.length;
+  while (i--) if (array[i] === item) return true;
+  return false;
+}
+
+function extend(obj, props) {
+  for (var key in props) obj[key] = props[key]
+  return obj;
+}
+
+function result(object, property) {
+    if (object == null) return void 0;
+    var value = object[property];
+    return (typeof value === 'function') ? object[property]() : value;
+}
+
+// Our Store is represented by a single JS object in *localStorage*. Create it
+// with a meaningful name, like the name you'd give a table.
+// window.Store is deprectated, use Backbone.LocalStorage instead
+Backbone.LocalStorage = window.Store = function(name, serializer) {
+  if( !this.localStorage ) {
+    throw "Backbone.localStorage: Environment does not support localStorage."
+  }
+  this.name = name;
+  this.serializer = serializer || {
+    serialize: function(item) {
+      return isObject(item) ? JSON.stringify(item) : item;
+    },
+    // fix for "illegal access" error on Android when JSON.parse is passed null
+    deserialize: function (data) {
+      return data && JSON.parse(data);
+    }
+  };
+  var store = this.localStorage().getItem(this.name);
+  this.records = (store && store.split(",")) || [];
+};
+
+extend(Backbone.LocalStorage.prototype, {
+
+  // Save the current state of the **Store** to *localStorage*.
+  save: function() {
+    this.localStorage().setItem(this.name, this.records.join(","));
+  },
+
+  // Add a model, giving it a (hopefully)-unique GUID, if it doesn't already
+  // have an id of it's own.
+  create: function(model) {
+    if (!model.id && model.id !== 0) {
+      model.id = guid();
+      model.set(model.idAttribute, model.id);
+    }
+    this.localStorage().setItem(this._itemName(model.id), this.serializer.serialize(model));
+    this.records.push(model.id.toString());
+    this.save();
+    return this.find(model);
+  },
+
+  // Update a model by replacing its copy in `this.data`.
+  update: function(model) {
+    this.localStorage().setItem(this._itemName(model.id), this.serializer.serialize(model));
+    var modelId = model.id.toString();
+    if (!contains(this.records, modelId)) {
+      this.records.push(modelId);
+      this.save();
+    }
+    return this.find(model);
+  },
+
+  // Retrieve a model from `this.data` by id.
+  find: function(model) {
+    return this.serializer.deserialize(this.localStorage().getItem(this._itemName(model.id)));
+  },
+
+  // Return the array of all models currently in storage.
+  findAll: function() {
+    var result = [];
+    for (var i = 0, id, data; i < this.records.length; i++) {
+      id = this.records[i];
+      data = this.serializer.deserialize(this.localStorage().getItem(this._itemName(id)));
+      if (data != null) result.push(data);
+    }
+    return result;
+  },
+
+  // Delete a model from `this.data`, returning it.
+  destroy: function(model) {
+    this.localStorage().removeItem(this._itemName(model.id));
+    var modelId = model.id.toString();
+    for (var i = 0, id; i < this.records.length; i++) {
+      if (this.records[i] === modelId) {
+        this.records.splice(i, 1);
+      }
+    }
+    this.save();
+    return model;
+  },
+
+  localStorage: function() {
+    return localStorage;
+  },
+
+  // Clear localStorage for specific collection.
+  _clear: function() {
+    var local = this.localStorage(),
+      itemRe = new RegExp("^" + this.name + "-");
+
+    // Remove id-tracking item (e.g., "foo").
+    local.removeItem(this.name);
+
+    // Match all data items (e.g., "foo-ID") and remove.
+    for (var k in local) {
+      if (itemRe.test(k)) {
+        local.removeItem(k);
+      }
+    }
+
+    this.records.length = 0;
+  },
+
+  // Size of localStorage.
+  _storageSize: function() {
+    return this.localStorage().length;
+  },
+
+  _itemName: function(id) {
+    return this.name+"-"+id;
+  }
+
+});
+
+// localSync delegate to the model or collection's
+// *localStorage* property, which should be an instance of `Store`.
+// window.Store.sync and Backbone.localSync is deprecated, use Backbone.LocalStorage.sync instead
+Backbone.LocalStorage.sync = window.Store.sync = Backbone.localSync = function(method, model, options) {
+  var store = result(model, 'localStorage') || result(model.collection, 'localStorage');
+
+  var resp, errorMessage;
+  //If $ is having Deferred - use it.
+  var syncDfd = Backbone.$ ?
+    (Backbone.$.Deferred && Backbone.$.Deferred()) :
+    (Backbone.Deferred && Backbone.Deferred());
+
+  try {
+
+    switch (method) {
+      case "read":
+        resp = model.id != undefined ? store.find(model) : store.findAll();
+        break;
+      case "create":
+        resp = store.create(model);
+        break;
+      case "update":
+        resp = store.update(model);
+        break;
+      case "delete":
+        resp = store.destroy(model);
+        break;
+    }
+
+  } catch(error) {
+    if (error.code === 22 && store._storageSize() === 0)
+      errorMessage = "Private browsing is unsupported";
+    else
+      errorMessage = error.message;
+  }
+
+  if (resp) {
+    if (options && options.success) {
+      if (Backbone.VERSION === "0.9.10") {
+        options.success(model, resp, options);
+      } else {
+        options.success(resp);
+      }
+    }
+    if (syncDfd) {
+      syncDfd.resolve(resp);
+    }
+
+  } else {
+    errorMessage = errorMessage ? errorMessage
+                                : "Record Not Found";
+
+    if (options && options.error)
+      if (Backbone.VERSION === "0.9.10") {
+        options.error(model, errorMessage, options);
+      } else {
+        options.error(errorMessage);
+      }
+
+    if (syncDfd)
+      syncDfd.reject(errorMessage);
+  }
+
+  // add compatibility with $.ajax
+  // always execute callback for success and error
+  if (options && options.complete) options.complete(resp);
+
+  return syncDfd && syncDfd.promise();
+};
+
+Backbone.ajaxSync = Backbone.sync;
+
+Backbone.getSyncMethod = function(model, options) {
+  var forceAjaxSync = options && options.ajaxSync;
+
+  if(!forceAjaxSync && (result(model, 'localStorage') || result(model.collection, 'localStorage'))) {
+    return Backbone.localSync;
+  }
+
+  return Backbone.ajaxSync;
+};
+
+// Override 'Backbone.sync' to default to localSync,
+// the original 'Backbone.sync' is still available in 'Backbone.ajaxSync'
+Backbone.sync = function(method, model, options) {
+  return Backbone.getSyncMethod(model, options).apply(this, [method, model, options]);
+};
+
+return Backbone.LocalStorage;
+}));
+
+
+/***/ }),
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // Backbone.Radio v2.0.0
@@ -18593,636 +19188,6 @@ module.exports = TodoMVCLayout();
 
 }));
 //# sourceMappingURL=./backbone.radio.js.map
-
-/***/ }),
-/* 8 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/* WEBPACK VAR INJECTION */(function($) {/*global TodoMVC:true, Backbone, $ */
-var Mn = __webpack_require__(1);
-var Backbone = __webpack_require__(0);
-var App = __webpack_require__(4);
-var Layout = __webpack_require__(6);
-var Todos = __webpack_require__(13);
-var TodoView = __webpack_require__(12);
-var Filter = __webpack_require__(5);
-
-var TodoMVCRouter = function () {
-	'use strict';
-
-	var TodoMVC = {};
-
-	var filterChannel = Backbone.Radio.channel('filter');
-
-	TodoMVC.Router = Mn.AppRouter.extend({
-		appRoutes: {
-			'*filter': 'filterItems'
-		}
-	});
-
-	TodoMVC.Controller = Mn.Object.extend({
-
-		initialize: function () {
-			this.todoList = new Todos.TodoList();
-		},
-
-		start: function () {
-			this.showHeader(this.todoList);
-			this.showFooter(this.todoList);
-			this.showTodoList(this.todoList);
-			this.todoList.on('all', this.updateHiddenElements, this);
-			this.todoList.fetch();
-		},
-
-		updateHiddenElements: function () {
-			$('#main, #footer').toggle(!!this.todoList.length);
-		},
-
-		showHeader: function (todoList) {
-			var header = new Layout.HeaderLayout({
-				collection: todoList
-			});
-			App.root.showChildView('header', header);
-		},
-
-		showFooter: function (todoList) {
-			var footer = new Layout.FooterLayout({
-				collection: todoList
-			});
-			App.root.showChildView('footer', footer);
-		},
-
-		showTodoList: function (todoList) {
-			App.root.showChildView('main', new TodoView.ListView({
-				collection: todoList
-			}));
-		},
-
-		filterItems: function (filter) {
-			var newFilter = filter && filter.trim() || 'all';
-			filterChannel.request('filterState').set('filter', newFilter);
-		}
-	});
-
-	return TodoMVC;
-};
-
-module.exports = TodoMVCRouter();
-
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
-
-/***/ }),
-/* 9 */
-/***/ (function(module, exports) {
-
-// removed by extract-text-webpack-plugin
-
-/***/ }),
-/* 10 */
-/***/ (function(module, exports) {
-
-// removed by extract-text-webpack-plugin
-
-/***/ }),
-/* 11 */
-/***/ (function(module, exports) {
-
-// removed by extract-text-webpack-plugin
-
-/***/ }),
-/* 12 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/*global TodoMVC: true, Backbone */
-var Mn = __webpack_require__(1);
-var Backbone = __webpack_require__(0);
-
-var TodoMVCTodoView = function () {
-	'use strict';
-
-	var TodoMVC = {};
-
-	var filterChannel = Backbone.Radio.channel('filter');
-
-	TodoMVC.TodoView = Mn.View.extend({
-
-		tagName: 'li',
-
-		template: '#template-todoItemView',
-
-		className: function () {
-			return this.model.get('completed') ? 'completed' : 'active';
-		},
-
-		ui: {
-			edit: '.edit',
-			destroy: '.destroy',
-			label: 'label',
-			toggle: '.toggle'
-		},
-
-		events: {
-			'click @ui.destroy': 'deleteModel',
-			'dblclick @ui.label': 'onEditClick',
-			'keydown @ui.edit': 'onEditKeypress',
-			'focusout @ui.edit': 'onEditFocusout',
-			'click @ui.toggle': 'toggle'
-		},
-
-		modelEvents: {
-			change: 'render'
-		},
-
-		deleteModel: function () {
-			this.model.destroy();
-		},
-
-		toggle: function () {
-			this.model.toggle().save();
-		},
-
-		onEditClick: function () {
-			this.$el.addClass('editing');
-			this.ui.edit.focus();
-			this.ui.edit.val(this.ui.edit.val());
-		},
-
-		onEditFocusout: function () {
-			var todoText = this.ui.edit.val().trim();
-			if (todoText) {
-				this.model.set('title', todoText).save();
-				this.$el.removeClass('editing');
-			} else {
-				this.destroy();
-			}
-		},
-
-		onEditKeypress: function (e) {
-			var ENTER_KEY = 13;
-			var ESC_KEY = 27;
-
-			if (e.which === ENTER_KEY) {
-				this.onEditFocusout();
-				return;
-			}
-
-			if (e.which === ESC_KEY) {
-				this.ui.edit.val(this.model.get('title'));
-				this.$el.removeClass('editing');
-			}
-		}
-	});
-
-	TodoMVC.ListViewBody = Mn.CollectionView.extend({
-		tagName: 'ul',
-
-		id: 'todo-list',
-
-		childView: TodoMVC.TodoView,
-
-		filter: function (child) {
-			var filteredOn = filterChannel.request('filterState').get('filter');
-			return child.matchesFilter(filteredOn);
-		}
-	});
-
-	TodoMVC.ListView = Mn.View.extend({
-
-		template: '#template-todoListView',
-
-		regions: {
-			listBody: {
-				el: 'ul',
-				replaceElement: true
-			}
-		},
-
-		ui: {
-			toggle: '#toggle-all'
-		},
-
-		events: {
-			'click @ui.toggle': 'onToggleAllClick'
-		},
-
-		collectionEvents: {
-			'change:completed': 'render',
-			all: 'setCheckAllState'
-		},
-
-		initialize: function () {
-			this.listenTo(filterChannel.request('filterState'), 'change:filter', this.render, this);
-		},
-
-		setCheckAllState: function () {
-			function reduceCompleted(left, right) {
-				return left && right.get('completed');
-			}
-
-			var allCompleted = this.collection.reduce(reduceCompleted, true);
-			this.ui.toggle.prop('checked', allCompleted);
-			this.$el.parent().toggle(!!this.collection.length);
-		},
-
-		onToggleAllClick: function (e) {
-			var isChecked = e.currentTarget.checked;
-
-			this.collection.each(function (todo) {
-				todo.save({ completed: isChecked });
-			});
-		},
-
-		onRender: function () {
-			this.showChildView('listBody', new TodoMVC.ListViewBody({
-				collection: this.collection
-			}));
-		}
-	});
-
-	return TodoMVC;
-};
-
-module.exports = TodoMVCTodoView();
-
-
-/***/ }),
-/* 13 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/*global Backbone, TodoMVC:true */
-
-var Backbone = __webpack_require__(0);
-var BackboneLocalStorage = __webpack_require__(15);
-
-var TodoMVCTodos = function () {
-	'use strict';
-
-	var TodoMVC = {};
-
-	TodoMVC.Todo = Backbone.Model.extend({
-		defaults: {
-			title: '',
-			completed: false,
-			created: 0
-		},
-
-		initialize: function () {
-			if (this.isNew()) {
-				this.set('created', Date.now());
-			}
-		},
-
-		toggle: function () {
-			return this.set('completed', !this.isCompleted());
-		},
-
-		isCompleted: function () {
-			return this.get('completed');
-		},
-
-		matchesFilter: function (filter) {
-			if (filter === 'all') {
-				return true;
-			}
-
-			if (filter === 'active') {
-				return !this.isCompleted();
-			}
-
-			return this.isCompleted();
-		}
-	});
-
-	TodoMVC.TodoList = Backbone.Collection.extend({
-		model: TodoMVC.Todo,
-
-		localStorage: new BackboneLocalStorage('todos-backbone-marionette'),
-
-		comparator: 'created',
-
-		getCompleted: function () {
-			return this.filter(this._isCompleted);
-		},
-
-		getActive: function () {
-			return this.reject(this._isCompleted);
-		},
-
-		_isCompleted: function (todo) {
-			return todo.isCompleted();
-		}
-	});
-
-	return TodoMVC;
-};
-
-module.exports = TodoMVCTodos();
-
-
-/***/ }),
-/* 14 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* WEBPACK VAR INJECTION */(function($) {Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node_modules_todomvc_app_css_index_css__ = __webpack_require__(10);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node_modules_todomvc_app_css_index_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__node_modules_todomvc_app_css_index_css__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_modules_todomvc_common_base_css__ = __webpack_require__(11);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_modules_todomvc_common_base_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__node_modules_todomvc_common_base_css__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__css_app_css__ = __webpack_require__(9);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__css_app_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2__css_app_css__);
-/*global Backbone, TodoMVC:true, $ */
-
-
-
-
-
-var Mn = __webpack_require__(1);
-var Backbone = __webpack_require__(0);
-var App = __webpack_require__(4);
-var Router = __webpack_require__(8);
-
-$(function () {
-	'use strict';
-
-	App.on('start', function () {
-		var controller = new Router.Controller();
-		controller.router = new Router.Router({
-			controller: controller
-		});
-
-		controller.start();
-		Backbone.history.start();
-	});
-
-	App.start();
-});
-
-/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(2)))
-
-/***/ }),
-/* 15 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/**
- * Backbone localStorage Adapter
- * Version 1.1.16
- *
- * https://github.com/jeromegn/Backbone.localStorage
- */
-(function (root, factory) {
-  if (true) {
-    module.exports = factory(__webpack_require__(0));
-  } else if (typeof define === "function" && define.amd) {
-    // AMD. Register as an anonymous module.
-    define(["backbone"], function(Backbone) {
-      // Use global variables if the locals are undefined.
-      return factory(Backbone || root.Backbone);
-    });
-  } else {
-    factory(Backbone);
-  }
-}(this, function(Backbone) {
-// A simple module to replace `Backbone.sync` with *localStorage*-based
-// persistence. Models are given GUIDS, and saved into a JSON object. Simple
-// as that.
-
-// Generate four random hex digits.
-function S4() {
-   return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
-};
-
-// Generate a pseudo-GUID by concatenating random hexadecimal.
-function guid() {
-   return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
-};
-
-function isObject(item) {
-  return item === Object(item);
-}
-
-function contains(array, item) {
-  var i = array.length;
-  while (i--) if (array[i] === item) return true;
-  return false;
-}
-
-function extend(obj, props) {
-  for (var key in props) obj[key] = props[key]
-  return obj;
-}
-
-function result(object, property) {
-    if (object == null) return void 0;
-    var value = object[property];
-    return (typeof value === 'function') ? object[property]() : value;
-}
-
-// Our Store is represented by a single JS object in *localStorage*. Create it
-// with a meaningful name, like the name you'd give a table.
-// window.Store is deprectated, use Backbone.LocalStorage instead
-Backbone.LocalStorage = window.Store = function(name, serializer) {
-  if( !this.localStorage ) {
-    throw "Backbone.localStorage: Environment does not support localStorage."
-  }
-  this.name = name;
-  this.serializer = serializer || {
-    serialize: function(item) {
-      return isObject(item) ? JSON.stringify(item) : item;
-    },
-    // fix for "illegal access" error on Android when JSON.parse is passed null
-    deserialize: function (data) {
-      return data && JSON.parse(data);
-    }
-  };
-  var store = this.localStorage().getItem(this.name);
-  this.records = (store && store.split(",")) || [];
-};
-
-extend(Backbone.LocalStorage.prototype, {
-
-  // Save the current state of the **Store** to *localStorage*.
-  save: function() {
-    this.localStorage().setItem(this.name, this.records.join(","));
-  },
-
-  // Add a model, giving it a (hopefully)-unique GUID, if it doesn't already
-  // have an id of it's own.
-  create: function(model) {
-    if (!model.id && model.id !== 0) {
-      model.id = guid();
-      model.set(model.idAttribute, model.id);
-    }
-    this.localStorage().setItem(this._itemName(model.id), this.serializer.serialize(model));
-    this.records.push(model.id.toString());
-    this.save();
-    return this.find(model);
-  },
-
-  // Update a model by replacing its copy in `this.data`.
-  update: function(model) {
-    this.localStorage().setItem(this._itemName(model.id), this.serializer.serialize(model));
-    var modelId = model.id.toString();
-    if (!contains(this.records, modelId)) {
-      this.records.push(modelId);
-      this.save();
-    }
-    return this.find(model);
-  },
-
-  // Retrieve a model from `this.data` by id.
-  find: function(model) {
-    return this.serializer.deserialize(this.localStorage().getItem(this._itemName(model.id)));
-  },
-
-  // Return the array of all models currently in storage.
-  findAll: function() {
-    var result = [];
-    for (var i = 0, id, data; i < this.records.length; i++) {
-      id = this.records[i];
-      data = this.serializer.deserialize(this.localStorage().getItem(this._itemName(id)));
-      if (data != null) result.push(data);
-    }
-    return result;
-  },
-
-  // Delete a model from `this.data`, returning it.
-  destroy: function(model) {
-    this.localStorage().removeItem(this._itemName(model.id));
-    var modelId = model.id.toString();
-    for (var i = 0, id; i < this.records.length; i++) {
-      if (this.records[i] === modelId) {
-        this.records.splice(i, 1);
-      }
-    }
-    this.save();
-    return model;
-  },
-
-  localStorage: function() {
-    return localStorage;
-  },
-
-  // Clear localStorage for specific collection.
-  _clear: function() {
-    var local = this.localStorage(),
-      itemRe = new RegExp("^" + this.name + "-");
-
-    // Remove id-tracking item (e.g., "foo").
-    local.removeItem(this.name);
-
-    // Match all data items (e.g., "foo-ID") and remove.
-    for (var k in local) {
-      if (itemRe.test(k)) {
-        local.removeItem(k);
-      }
-    }
-
-    this.records.length = 0;
-  },
-
-  // Size of localStorage.
-  _storageSize: function() {
-    return this.localStorage().length;
-  },
-
-  _itemName: function(id) {
-    return this.name+"-"+id;
-  }
-
-});
-
-// localSync delegate to the model or collection's
-// *localStorage* property, which should be an instance of `Store`.
-// window.Store.sync and Backbone.localSync is deprecated, use Backbone.LocalStorage.sync instead
-Backbone.LocalStorage.sync = window.Store.sync = Backbone.localSync = function(method, model, options) {
-  var store = result(model, 'localStorage') || result(model.collection, 'localStorage');
-
-  var resp, errorMessage;
-  //If $ is having Deferred - use it.
-  var syncDfd = Backbone.$ ?
-    (Backbone.$.Deferred && Backbone.$.Deferred()) :
-    (Backbone.Deferred && Backbone.Deferred());
-
-  try {
-
-    switch (method) {
-      case "read":
-        resp = model.id != undefined ? store.find(model) : store.findAll();
-        break;
-      case "create":
-        resp = store.create(model);
-        break;
-      case "update":
-        resp = store.update(model);
-        break;
-      case "delete":
-        resp = store.destroy(model);
-        break;
-    }
-
-  } catch(error) {
-    if (error.code === 22 && store._storageSize() === 0)
-      errorMessage = "Private browsing is unsupported";
-    else
-      errorMessage = error.message;
-  }
-
-  if (resp) {
-    if (options && options.success) {
-      if (Backbone.VERSION === "0.9.10") {
-        options.success(model, resp, options);
-      } else {
-        options.success(resp);
-      }
-    }
-    if (syncDfd) {
-      syncDfd.resolve(resp);
-    }
-
-  } else {
-    errorMessage = errorMessage ? errorMessage
-                                : "Record Not Found";
-
-    if (options && options.error)
-      if (Backbone.VERSION === "0.9.10") {
-        options.error(model, errorMessage, options);
-      } else {
-        options.error(errorMessage);
-      }
-
-    if (syncDfd)
-      syncDfd.reject(errorMessage);
-  }
-
-  // add compatibility with $.ajax
-  // always execute callback for success and error
-  if (options && options.complete) options.complete(resp);
-
-  return syncDfd && syncDfd.promise();
-};
-
-Backbone.ajaxSync = Backbone.sync;
-
-Backbone.getSyncMethod = function(model, options) {
-  var forceAjaxSync = options && options.ajaxSync;
-
-  if(!forceAjaxSync && (result(model, 'localStorage') || result(model.collection, 'localStorage'))) {
-    return Backbone.localSync;
-  }
-
-  return Backbone.ajaxSync;
-};
-
-// Override 'Backbone.sync' to default to localSync,
-// the original 'Backbone.sync' is still available in 'Backbone.ajaxSync'
-Backbone.sync = function(method, model, options) {
-  return Backbone.getSyncMethod(model, options).apply(this, [method, model, options]);
-};
-
-return Backbone.LocalStorage;
-}));
-
 
 /***/ }),
 /* 16 */

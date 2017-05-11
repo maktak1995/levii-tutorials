@@ -7,64 +7,56 @@ var Todos = require('./TodoMVC.Todos');
 var TodoView = require('./TodoMVC.TodoList.Views');
 var Filter = require('./TodoMVC.FilterState');
 
-var TodoMVCRouter = function () {
-	'use strict';
+'use strict';
 
-	var TodoMVC = {};
+var filterChannel = Backbone.Radio.channel('filter');
 
-	var filterChannel = Backbone.Radio.channel('filter');
+module.exports.Router = Mn.AppRouter.extend({
+	appRoutes: {
+		'*filter': 'filterItems'
+	}
+});
 
-	TodoMVC.Router = Mn.AppRouter.extend({
-		appRoutes: {
-			'*filter': 'filterItems'
-		}
-	});
+module.exports.Controller = Mn.Object.extend({
 
-	TodoMVC.Controller = Mn.Object.extend({
+	initialize: function () {
+		this.todoList = new Todos.TodoList();
+	},
 
-		initialize: function () {
-			this.todoList = new Todos.TodoList();
-		},
+	start: function () {
+		this.showHeader(this.todoList);
+		this.showFooter(this.todoList);
+		this.showTodoList(this.todoList);
+		this.todoList.on('all', this.updateHiddenElements, this);
+		this.todoList.fetch();
+	},
 
-		start: function () {
-			this.showHeader(this.todoList);
-			this.showFooter(this.todoList);
-			this.showTodoList(this.todoList);
-			this.todoList.on('all', this.updateHiddenElements, this);
-			this.todoList.fetch();
-		},
+	updateHiddenElements: function () {
+		$('#main, #footer').toggle(!!this.todoList.length);
+	},
 
-		updateHiddenElements: function () {
-			$('#main, #footer').toggle(!!this.todoList.length);
-		},
+	showHeader: function (todoList) {
+		var header = new Layout.HeaderLayout({
+			collection: todoList
+		});
+		App.root.showChildView('header', header);
+	},
 
-		showHeader: function (todoList) {
-			var header = new Layout.HeaderLayout({
-				collection: todoList
-			});
-			App.root.showChildView('header', header);
-		},
+	showFooter: function (todoList) {
+		var footer = new Layout.FooterLayout({
+			collection: todoList
+		});
+		App.root.showChildView('footer', footer);
+	},
 
-		showFooter: function (todoList) {
-			var footer = new Layout.FooterLayout({
-				collection: todoList
-			});
-			App.root.showChildView('footer', footer);
-		},
+	showTodoList: function (todoList) {
+		App.root.showChildView('main', new TodoView.ListView({
+			collection: todoList
+		}));
+	},
 
-		showTodoList: function (todoList) {
-			App.root.showChildView('main', new TodoView.ListView({
-				collection: todoList
-			}));
-		},
-
-		filterItems: function (filter) {
-			var newFilter = filter && filter.trim() || 'all';
-			filterChannel.request('filterState').set('filter', newFilter);
-		}
-	});
-
-	return TodoMVC;
-};
-
-module.exports = TodoMVCRouter();
+	filterItems: function (filter) {
+		var newFilter = filter && filter.trim() || 'all';
+		filterChannel.request('filterState').set('filter', newFilter);
+	}
+});
