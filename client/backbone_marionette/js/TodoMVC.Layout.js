@@ -1,6 +1,7 @@
 /*global TodoMVC:true, Backbone */
 var Mn = require('backbone.marionette');
 var Backbone = require('backbone');
+var Radio = require('backbone.radio');
 var Filter = require('./TodoMVC.FilterState');
 
 'use strict';

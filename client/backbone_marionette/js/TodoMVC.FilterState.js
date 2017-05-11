@@ -1,5 +1,6 @@
 /*global Backbone */
 var Backbone = require('backbone');
+var Radio = require('backbone.radio');
 
 'use strict';
 var filterState = new Backbone.Model({

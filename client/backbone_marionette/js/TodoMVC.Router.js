@@ -1,6 +1,7 @@
 /*global TodoMVC:true, Backbone, $ */
 var Mn = require('backbone.marionette');
 var Backbone = require('backbone');
+var BackboneRadio = require('backbone.radio');
 var App = require('./TodoMVC.Application');
 var Layout = require('./TodoMVC.Layout');
 var Todos = require('./TodoMVC.Todos');
