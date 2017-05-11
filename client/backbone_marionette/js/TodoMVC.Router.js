@@ -1,7 +1,6 @@
 /*global TodoMVC:true, Backbone, $ */
 var Mn = require('backbone.marionette');
 var Backbone = require('backbone');
-var BackboneRadio = require('backbone.radio');
 var App = require('./TodoMVC.Application');
 var Layout = require('./TodoMVC.Layout');
 var Todos = require('./TodoMVC.Todos');
@@ -13,7 +12,7 @@ var TodoMVCRouter = function () {
 
 	var TodoMVC = {};
 
-	var filterChannel = BackboneRadio.channel('filter');
+	var filterChannel = Backbone.Radio.channel('filter');
 
 	TodoMVC.Router = Mn.AppRouter.extend({
 		appRoutes: {

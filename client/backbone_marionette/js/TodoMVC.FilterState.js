@@ -1,6 +1,5 @@
 /*global Backbone */
 var Backbone = require('backbone');
-var BackboneRadio = require('backbone.radio');
 
 var filter = function () {
 	'use strict';
@@ -8,7 +7,7 @@ var filter = function () {
 		filter: 'all'
 	});
 
-	var filterChannel = BackboneRadio.channel('filter');
+	var filterChannel = Backbone.Radio.channel('filter');
 	filterChannel.reply('filterState', function () {
 		return filterState;
 	});

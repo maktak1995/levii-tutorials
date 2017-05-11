@@ -1,14 +1,13 @@
 /*global TodoMVC: true, Backbone */
 var Mn = require('backbone.marionette');
 var Backbone = require('backbone');
-var BackboneRadio = require('backbone.radio');
 
 var TodoMVCTodoView = function () {
 	'use strict';
 
 	var TodoMVC = {};
 
-	var filterChannel = BackboneRadio.channel('filter');
+	var filterChannel = Backbone.Radio.channel('filter');
 
 	TodoMVC.TodoView = Mn.View.extend({
 
