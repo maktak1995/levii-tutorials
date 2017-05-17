@@ -21,39 +21,5 @@
 			<p>See who else is using marionette at <a href="http://marionettejs.com/">marionettejs.com</a>.</p>
 		</footer>
 		<script src="builds/bundle.js"></script>
-		<script type="text/html" id="template-footer">
-			<span id="todo-count">
-				<strong><%= activeCount %></strong> <%= activeCountLabel() %>
-			</span>
-			<ul id="filters">
-				<li class="all">
-					<a href="#/">All</a>
-				</li>
-				<li class="active">
-					<a href="#/active">Active</a>
-				</li>
-				<li class="completed">
-					<a href="#/completed">Completed</a>
-				</li>
-			</ul>
-			<button id="clear-completed" <% if (!completedCount) { %>class="hidden"<% } %>>Clear completed</button>
-		</script>
-		<script type="text/html" id="template-header">
-			<h1>todos</h1>
-			<input id="new-todo" placeholder="What needs to be done?" autofocus>
-		</script>
-		<script type="text/html" id="template-todoItemView">
-			<div class="view">
-				<input class="toggle" type="checkbox" <% if (completed) { %>checked<% } %>>
-				<label><%- title %></label>
-				<button class="destroy"></button>
-			</div>
-			<input class="edit" value="<%- title %>">
-		</script>
-		<script type="text/html" id="template-todoListView">
-			<input id="toggle-all" type="checkbox">
-			<label for="toggle-all">Mark all as complete</label>
-			<ul></ul>
-		</script>
 	</body>
 </html>

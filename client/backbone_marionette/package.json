@@ -12,6 +12,8 @@
     "todomvc-common": "^1.0.1",
     "underscore": "^1.6.0",
     "webpack": "^2.4.1",
-    "extract-text-webpack-plugin": "*"
+    "extract-text-webpack-plugin": "*",
+    "handlebars": "*",
+    "handlebars-loader": "*"
   }
 }

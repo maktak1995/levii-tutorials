@@ -27,6 +27,10 @@ module.exports = {
               test:   /\.html/,
               use : ['html-loader'],
             },
+            {
+              test:   /\.hbs/,
+              use : ['handlebars-loader'],
+            }
         ],
     },
 };

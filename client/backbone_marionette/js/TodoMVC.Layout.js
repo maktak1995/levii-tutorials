@@ -1,8 +1,11 @@
 /*global TodoMVC:true, Backbone */
 var Mn = require('backbone.marionette');
 var Backbone = require('backbone');
+var Handlebars = require('handlebars');
 var Radio = require('backbone.radio');
 var Filter = require('./TodoMVC.FilterState');
+var THeader = require('../hbs/template-header.hbs');
+var TFooter = require('../hbs/template-footer.hbs');
 
 'use strict';
 
@@ -21,7 +24,7 @@ module.exports.RootLayout = Mn.View.extend({
 
 module.exports.HeaderLayout = Mn.View.extend({
 
-	template: '#template-header',
+	template: THeader,
 
 	ui: {
 		input: '#new-todo'
@@ -55,7 +58,7 @@ module.exports.HeaderLayout = Mn.View.extend({
 
 
 module.exports.FooterLayout = Mn.View.extend({
-	template: '#template-footer',
+	template: TFooter,
 
 	ui: {
 		filters: '#filters a',
@@ -74,12 +77,6 @@ module.exports.FooterLayout = Mn.View.extend({
 		all: 'render'
 	},
 
-	templateContext: {
-		activeCountLabel: function () {
-			return (this.activeCount === 1 ? 'item' : 'items') + ' left';
-		}
-	},
-
 	initialize: function () {
 		this.listenTo(filterChannel.request('filterState'), 'change:filter', this.updateFilterSelection, this);
 	},
@@ -87,11 +84,12 @@ module.exports.FooterLayout = Mn.View.extend({
 	serializeData: function () {
 		var active = this.collection.getActive().length;
 		var total = this.collection.length;
-
+		var countLabel = function () {return ( active === 1 ? 'item' : 'items') + ' left';};
 		return {
 			activeCount: active,
 			totalCount: total,
-			completedCount: total - active
+			completedCount: total - active,
+			activeCountLabel: countLabel
 		};
 	},
 
